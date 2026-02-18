@@ -2,5 +2,3 @@
 ## Title: SteakFrames
 ## Notes: Configures and moves unit frames.
 Core.lua
-raid.lua
-party.lua
