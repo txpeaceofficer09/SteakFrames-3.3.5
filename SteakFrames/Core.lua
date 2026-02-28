@@ -3,6 +3,7 @@ SteakUnitsParent:SetAllPoints(UIParent)
 
 local GearScores = {}
 local SteakSpecs = {}
+local SteakAuras = {}
 
 local DebuffTypeIcons = {
 	Magic   = "Interface\\Icons\\Spell_Holy_DispelMagic",
@@ -94,8 +95,17 @@ local SteakUnitEvents = {
 	"INSPECT_READY",
 	"PLAYER_FOCUS_CHANGED",
 	"UNIT_INVENTORY_CHANGED",
-	"INSPECT_TALENT_READY"
+	"INSPECT_TALENT_READY",
+	"PARTY_LOOT_METHOD_CHANGED",
+	"UNIT_COMBO_POINTS"
 }
+
+local origNotifyInspect = NotifyInspect
+
+NotifyInspect = function(unit)
+	SteakInspectUnitGUID = UnitGUID(unit)
+	origNotifyInspect(unit)
+end
 
 local function GetUnitGearData(unit)
 	if not UnitIsPlayer(unit) or not CheckInteractDistance(unit, 1) then
@@ -149,6 +159,8 @@ local function Steak_GetSpec(self)
 
 	local guid = UnitGUID(self.unit)
 	if not guid then return nil end
+
+	if guid ~= SteakInspectUnitGUID then return nil end
 
 	local maxPoints = 0
 	local specName = nil
@@ -228,31 +240,33 @@ local function Steak_UpdateRole(self)
 
 	if role == "NONE" or not role or role == "" then
 		if spec then
-			role = SteakSpecRoles[spec]
+			if select(2, UnitClass(self.unit)) == "DRUID" and spec == "Feral Combat" then
+				local _, _, _, _, tankPoints = GetTalentInfo(2, 26, true)
+				local _, _, _, _, thickHidePoints = GetTalentInfo(2, 4, true)
+				
+				if thickHidePoints > 0 or tankPoints > 0 then
+					role = "TANK"
+				else
+					role = "DAMAGER"
+				end
+			else
+				role = SteakSpecRoles[spec]
+			end
 		end
 	end
 
 	if role == "TANK" then
-		--self.roleIcon:SetTexture("Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES")
-		--self.roleIcon:SetTexCoord(0, 0.25, 0, 1)
-		--self.roleIcon:SetTexture("Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES-TANK")
-		self.roleIcon:SetTexture("Interface\\AddOns\\SteakFrames\\tank.tga")
+		self.roleIcon:SetTexture("Interface\\AddOns\\SteakFrames\\tank_32.tga")
 
 		self.roleIcon:Show()
 
 	elseif role == "HEALER" then
-		--self.roleIcon:SetTexture("Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES")
-		--self.roleIcon:SetTexCoord(0.25, 0.5, 0, 1)
-		--self.roleIcon:SetTexture("Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES-HEALER")
-		self.roleIcon:SetTexture("Interface\\AddOns\\SteakFrames\\healer.tga")
+		self.roleIcon:SetTexture("Interface\\AddOns\\SteakFrames\\healer_32.tga")
 
 		self.roleIcon:Show()
 
 	elseif role == "DAMAGER" then
-		--self.roleIcon:SetTexture("Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES")
-		--self.roleIcon:SetTexCoord(0.5, 0.75, 0, 1)
-		--self.roleIcon:SetTexture("Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES-DPS")
-		self.roleIcon:SetTexture("Interface\\AddOns\\SteakFrames\\dps.tga")
+		self.roleIcon:SetTexture("Interface\\AddOns\\SteakFrames\\dps_32.tga")
 
 		self.roleIcon:Show()
 
@@ -315,7 +329,7 @@ end
 local function Steak_UpdateName(self)
 	local isDead = UnitIsDeadOrGhost(self.unit)
 	local isConnected = UnitIsConnected(self.unit)
-	local unitName = UnitName(self.unit) or "Unknown"
+	local unitName = ("[%s] %s"):format(UnitLevel(self.unit) or "??", UnitName(self.unit) or "Unknown")
 
 	if isDead then
 		unitName = unitName.."\nDEAD"
@@ -324,6 +338,61 @@ local function Steak_UpdateName(self)
 	end
 
 	self.nameText:SetText(unitName)
+end
+
+local function UnitInGroup(unit)
+	if not UnitExists(unit) then return false end
+	if UnitIsUnit(unit, "player") then return true end
+
+	for i=1,4 do
+		if UnitExists("party"..i) and UnitIsUnit(unit, "party"..i) then return true end
+	end
+
+	for i=1,40 do
+		if UnitExists("raid"..i) and UnitIsUnit(unit, "raid"..i) then return true end
+	end
+
+	return false
+end
+
+local function UpdateRoleIcons(self)
+	if not UnitExists(self.unit) or not UnitIsPlayer(self.unit) or not UnitInGroup(self.unit) then return end
+
+	local roleText = ""
+
+	if UnitIsRaidOfficer(self.unit) and UnitIsPartyLeader(self.unit) then
+		roleText = string.format("%s|T%s:14:14|t ", roleText, "Interface\\GroupFrame\\UI-Group-LeaderIcon")
+	end
+
+	if UnitIsRaidOfficer(self.unit) and not UnitIsPartyLeader(self.unit) then
+		roleText = string.format("%s|T%s:14:14|t ", roleText, "Interface\\GroupFrame\\UI-Group-AssistantIcon")
+	end
+
+	if GetPartyAssignment("MAINTANK", self.unit) then
+		roleText = string.format("%s|T%s:14:14|t ", roleText, "Interface\\GroupFrame\\UI-Group-MainTankIcon")
+	end
+
+	if GetPartyAssignment("MAINASSIST", self.unit) then
+		roleText = string.format("%s|T%s:14:14|t ", roleText, "Interface\\GroupFrame\\UI-Group-MainAssistIcon")
+	end
+
+	local method, mlPartyID, mlRaidID = GetLootMethod()
+
+	if method == "master" then
+		local mlUnit
+
+		if mlRaidID then
+			mlUnit = "raid"..mlRaidID
+		elseif mlPartyID then
+			mlUnit = mlPartyID == 0 and "player" or "party"..mlPartyID
+		end
+
+		if mlUnit and UnitIsUnit(self.unit, mlUnit) then
+			roleText = string.format("%s|T%s:14:14|t ", roleText, "Interface\\GroupFrame\\UI-Group-MasterLooter")
+		end
+	end
+
+	self.roleText:SetText(roleText)
 end
 
 local function Steak_UpdateDebuffs(self)
@@ -475,7 +544,7 @@ end
 
 local function Steak_OnUpdate(self, elapsed)
 	if UnitExists(self.unit) and not UnitIsUnit("player", self.unit) then
-		if CheckInteractDistance(self.unit, 1) then
+		if CheckInteractDistance(self.unit, 1) or UnitIsUnit(self.unit, "player") then
 			self:SetAlpha(1)
 		else
 			self:SetAlpha(0.2)
@@ -485,10 +554,10 @@ end
 
 local function Steak_OnEvent(self, event, ...)
 	if event == "PLAYER_TARGET_CHANGED" then
-		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and ( ( UnitExists("target") and UnitIsUnit(self.unit, "target") ) or ( UnitExists("targettarget") and UnitIsUnit(self.unit, "targettarget") ) ) then
+		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and ( UnitExists("target") and UnitIsUnit(self.unit, "target") ) then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
-				if not SteakInspectUnit then
-					SteakInspectUnit = self.unit
+				if not SteakInspectUnitGUID then
+					--SteakInspectUnitGUID = UnitGUID(self.unit)
 					NotifyInspect(self.unit)
 				end
 			end
@@ -496,8 +565,8 @@ local function Steak_OnEvent(self, event, ...)
 	elseif event == "UNIT_TARGET" then
 		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and UnitExists(...) and UnitIsUnit(self.unit, ...) then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
-				if not SteakInspectUnit then
-					SteakInspectUnit = self.unit
+				if not SteakInspectUnitGUID then
+					--SteakInspectUnitGUID = UnitGUID(self.unit)
 					NotifyInspect(self.unit)
 				end
 			end
@@ -505,8 +574,8 @@ local function Steak_OnEvent(self, event, ...)
 	elseif event == "PLAYER_FOCUS_CHANGED" then
 		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and UnitExists("focus") and UnitIsUnit(self.unit, "focus") then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
-				if not SteakInspectUnit then
-					SteakInspectUnit = self.unit
+				if not SteakInspectUnitGUID then
+					--SteakInspectUnitGUID = UnitGUID(self.unit)
 					NotifyInspect(self.unit)
 				end
 			end
@@ -518,12 +587,49 @@ local function Steak_OnEvent(self, event, ...)
 			Steak_UpdateRole(self)
 		end
 	elseif event == "INSPECT_TALENT_READY" then
-		if SteakInspectUnit and UnitIsUnit(self.unit, SteakInspectUnit) then
+		if SteakInspectUnitGUID and UnitGUID(self.unit) == SteakInspectUnitGUID then
 			local spec = Steak_GetSpec(self)
 			Steak_UpdateRole(self)
 			
-			self.specText:SetText(spec)
-			SteakInspectUnit = nil
+			if spec then
+				self.specText:SetText(spec:sub(1, 3))
+				SteakInspectUnitGUID = nil
+			end
+		end
+	elseif event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" then
+		if UnitExists(self.unit) then
+			Steak_UpdateHealth(self)
+		end
+	elseif event == "UNIT_THREAT_SITUATION_UPDATE" or event == "UNIT_THREAT_LIST_UPDATE" then
+		if UnitExists(self.unit) then
+			Steak_UpdateThreat(self)
+		end
+	elseif event == "PARTY_LOOT_METHOD_CHANGED" then
+		if UnitExists(self.unit) then
+			UpdateRoleIcons(self)
+		end
+	elseif event == "UNIT_COMBO_POINTS" then
+		if self.unit == "target" then
+			self.cp = self.cp or {}
+			local comboPoints = GetComboPoints("player", "target")
+			for i=1,5 do
+				local cp = self.cp[i]
+				if not cp then
+					cp = self:CreateTexture(nil, "OVERLAY")
+					cp:SetSize(26, 6)
+					cp:SetPoint("TOPLEFT", self, "BOTTOMLEFT", (i-1) * 28, -2)
+					--cp:SetTexture("Interface\\ComboFrame\\ComboPoint")
+					cp:SetTexture(1, 0.6, 0, 1)
+					cp:SetTexCoord(0.375, 0.5625, 0, 0.375)
+					self.cp[i] = cp
+				end
+				
+				if comboPoints >= i then
+					cp:Show()
+				else
+					cp:Hide()
+				end
+			end
 		end
 	else
 		if UnitExists(self.unit) then
@@ -535,9 +641,19 @@ local function Steak_OnEvent(self, event, ...)
 			Steak_UpdateThreat(self)
 			Steak_UpdateGS(self)
 			Steak_UpdateRole(self)
+			UpdateRoleIcons(self)
 			--Steak_GetSpec(self)
 			if SteakSpecs[UnitGUID(self.unit)] then
 				self.specText:SetText(SteakSpecs[UnitGUID(self.unit)])
+			end
+
+			local index = tonumber(self.unit:match("^raid(%d+)$"))
+			if index then
+				local subgroup = select(3, GetRaidRosterInfo(index))
+
+				self.groupText:SetText(subgroup)
+			else
+				self.groupText:SetText("")
 			end
 		end
 	end
@@ -631,7 +747,7 @@ local function CreateSteakUnitFrame(name, unit, width, height, parent)
 
 	local pvpIcon = health:CreateTexture(nil, "OVERLAY")
 	pvpIcon:SetSize(24, 24)
-	pvpIcon:SetPoint("TOP", frame, "TOPLEFT", 0, 0)
+	pvpIcon:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -2, -2)
 	frame.pvpIcon = pvpIcon
 
 	local gsText = frame:CreateFontString(nil, "OVERLAY")
@@ -648,14 +764,26 @@ local function CreateSteakUnitFrame(name, unit, width, height, parent)
 
 	local roleIcon = health:CreateTexture(nil, "OVERLAY")
 	roleIcon:SetSize(14, 14)
-	roleIcon:SetPoint("CENTER", frame, "TOPLEFT", 0, 0)
+	roleIcon:SetPoint("TOPLEFT", frame, "TOPLEFT", 2, -2)
 	frame.roleIcon = roleIcon
 	
+	local roleText = health:CreateFontString(nil, "OVERLAY")
+	roleText:SetFont("Interface\\AddOns\\SteakFrames\\Audiowide-Regular.ttf", 8, "OUTLINE")
+	roleText:SetPoint("LEFT", frame.roleIcon, "RIGHT", 0, 0)
+	roleText:SetTextColor(1, 1, 1)
+	frame.roleText = roleText
+
 	local specText = mana:CreateFontString(nil, "OVERLAY")
 	specText:SetFont("Interface\\AddOns\\SteakFrames\\Audiowide-Regular.ttf", 8, "OUTLINE")
 	specText:SetPoint("LEFT", mana, "LEFT", 2, 0)
 	specText:SetTextColor(1, 1, 1)
 	frame.specText = specText
+
+	local groupText = health:CreateFontString(nil, "OVERLAY")
+	groupText:SetFont("Interface\\AddOns\\SteakFrames\\Audiowide-Regular.ttf", 12, "OUTLINE")
+	groupText:SetPoint("CENTER", frame, "TOP", 0, 0)
+	groupText:SetText("")
+	frame.groupText = groupText
 
 	--[[
 	local threatText = frame:CreateFontString(nil, "OVERLAY")
@@ -747,10 +875,92 @@ SteakFocus:ClearAllPoints()
 SteakFocus:SetPoint("LEFT", SteakTarget, "RIGHT", 40, 0)
 
 SteakToT:ClearAllPoints()
-SteakToT:SetPoint("TOP", SteakTarget, "BOTTOM", 40, -10)
+SteakToT:SetPoint("TOP", SteakTarget, "BOTTOM", 40, -25)
 
 SteakPet:ClearAllPoints()
-SteakPet:SetPoint("TOP", SteakPlayer, "BOTTOM", 10, -10)
+SteakPet:SetPoint("TOP", SteakPlayer, "BOTTOM", 10, -25)
+
+local targetBuffs = CreateFrame("Frame", nil, UIParent)
+
+targetBuffs:SetPoint("TOPLEFT", SteakTarget, "BOTTOMLEFT", 0, -18)
+
+targetBuffs:RegisterEvent("UNIT_AURA")
+
+targetBuffs:SetScript("OnEvent", function(self, event, unit)
+	if unit == "target" then
+		local index = 1
+
+		for _, buff in ipairs(self.buffs or {}) do
+			buff:Hide()
+		end
+
+		for i=1,40 do
+			local name, icon, stacks, _, _, _, caster = UnitDebuff("target", i)
+			
+			if not name then break end
+
+			if caster == "player" then			
+				local buff = self.buffs[index]
+			
+				if not buff then
+					buff = CreateFrame("Frame", nil, self)
+					buff:SetSize(16, 16)
+					
+					buff.tex = buff:CreateTexture(nil, "ARTWORK")
+					buff.tex:SetAllPoints(buff)
+					buff.stacks = buff:CreateFontString(nil, "OVERLAY")
+					buff.stacks:SetJustifyH("CENTER")
+					buff.stacks:SetFont("Interface\\AddOns\\SteakFrames\\Audiowide-Regular.ttf", 6, "OUTLINE")
+					buff.stacks:SetAllPoints(buff)
+					buff:SetPoint("TOPLEFT", self, "TOPLEFT", (index-1)*18, 0)
+				end
+
+				buff.tex:SetTexture(icon)
+				if stacks == 0 then
+					buff.stacks:SetText("")
+				else
+					buff.stacks:SetText(stacks)
+				end
+				buff:Show()
+
+				index = index + 1
+			end
+		end
+		
+		for i=1,40 do
+			local name, icon, stacks, _, _, _, caster = UnitBuff("target", i)
+			
+			if not name then break end
+			
+			if caster == "player" then
+				local buff = self.buffs[index]
+			
+				if not buff then
+					buff = CreateFrame("Frame", nil, self)
+					buff:SetSize(16, 16)
+					
+					buff.tex = buff:CreateTexture(nil, "ARTWORK")
+					buff.tex:SetAllPoints(buff)
+					buff.stacks = buff:CreateFontString(nil, "OVERLAY")
+					buff.stacks:SetJustifyH("CENTER")
+					buff.stacks:SetFont("Interface\\AddOns\\SteakFrames\\Audiowide-Regular.ttf", 6, "OUTLINE")
+					buff.stacks:SetAllPoints(buff)
+					buff:SetPoint("TOPLEFT", self, "TOPLEFT", (index-1)*18, 0)
+				end
+
+				buff.tex:SetTexture(icon)
+				if stacks == 0 then
+					buff.stacks:SetText("")
+				else
+					buff.stacks:SetText(stacks)
+				end
+				buff:Show()
+
+				index = index + 1			
+			end
+		end
+	end
+end)
 
 local h = CreateFrame("Frame")
 
