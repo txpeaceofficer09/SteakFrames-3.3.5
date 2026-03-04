@@ -88,6 +88,7 @@ local SteakUnitEvents = {
 	"UNIT_AURA",
 	"UNIT_PET",
 	"UNIT_HAPPINESS",
+	"UNIT_FLAGS",
 	"RAID_TARGET_UPDATE",
 	"PLAYER_PET_CHANGED",
 	"PLAYER_TARGET_CHANGED",
@@ -97,7 +98,10 @@ local SteakUnitEvents = {
 	"UNIT_INVENTORY_CHANGED",
 	"INSPECT_TALENT_READY",
 	"PARTY_LOOT_METHOD_CHANGED",
-	"UNIT_COMBO_POINTS"
+	"UNIT_COMBO_POINTS",
+	"PLAYER_XP_UPDATE",
+	"PLAYER_LEVEL_UP",
+	"UPDATE_EXHAUSTION"
 }
 
 local origNotifyInspect = NotifyInspect
@@ -582,6 +586,42 @@ local function Steak_OnEvent(self, event, ...)
 		end
 	end
 
+	if event == "PLAYER_XP_UPDATE" or event == "PLAYER_LEVEL_UP" or event == "UPDATE_EXHAUSTION" or event == "PLAYER_ENTERING_WORLD" then
+		if self.xp then
+			local curXP = UnitXP("player")
+			local maxXP = UnitXPMax("player")
+			local restXP = GetXPExhaustion() or 0
+			
+			if maxXP <= 0 then
+				self.xpText:SetText("Max Level")
+				self.xp:SetValue(100)
+				return
+			end
+			
+			self.xp:SetMinMaxValues(0, maxXP)
+			self.xp:SetValue(curXP)
+			
+			self.xpText:SetText(("%d%%"):format(math.floor((curXP / maxXP) * 100)))
+			
+			if restXP > 0 then
+				self.xp:SetStatusBarColor(0, 0.4, 1, 1)
+				
+				local totalRested = curXP + restXP
+				local restPct = totalRested / maxXP
+
+				if restPct > 1 then restPct = 1 end
+
+				self.xp.tick:ClearAllPoints()
+				self.xp.tick:SetPoint("CENTER", self.xp, "LEFT", restPct * self.xp:GetWidth(), 0)
+				
+				self.xp.tick:Show()
+			else
+				self.xp:SetStatusBarColor(0.6, 0, 0.6, 1)
+				self.xp.tick:Hide()
+			end
+		end
+	end
+
 	if event == "PLAYER_ROLES_ASSIGNED" then
 		if UnitExists(self.unit) and UnitExists(...) and UnitIsUnit(self.unit, ...) then
 			Steak_UpdateRole(self)
@@ -607,6 +647,14 @@ local function Steak_OnEvent(self, event, ...)
 	elseif event == "PARTY_LOOT_METHOD_CHANGED" then
 		if UnitExists(self.unit) then
 			UpdateRoleIcons(self)
+		end
+	elseif event == "UNIT_FLAGS" then
+		if UnitExists(self.unit) and UnitIsUnit(self.unit, ...) then
+			if UnitAffectingCombat(self.unit) then
+				self.combatIcon:Show()
+			else
+				self.combatIcon:Hide()
+			end
 		end
 	elseif event == "UNIT_COMBO_POINTS" then
 		if self.unit == "target" then
@@ -708,6 +756,35 @@ local function CreateSteakUnitFrame(name, unit, width, height, parent)
 	bg:SetVertexColor(0, 0, 0, 0.8)
 	frame.bg = bg
 
+	if unit == "player" then
+		local xp = CreateFrame("StatusBar", nil, frame)
+		xp:SetPoint("TOPLEFT", frame, "BOTTOMLEFT", 0, -1)
+		xp:SetPoint("TOPRIGHT", frame, "BOTTOMRIGHT", 0, -1)
+		xp:SetHeight(12)
+		xp:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+		xp:SetMinMaxValues(0, 100)
+		frame.xp = xp
+		
+		local xpbg = xp:CreateTexture(nil, "BACKGROUND")
+		xpbg:SetAllPoints(xp)
+		xpbg:SetTexture(0, 0, 0, 0.8)
+		xp.bg = xpbg
+		
+		local tick = xp:CreateTexture(nil, "ARTWORK")
+		tick:SetSize(12, 22)
+		tick:SetTexture("Interface\\CastingBar\\UI-CastingBar-Spark")
+		tick:SetBlendMode("ADD")
+		tick:SetAlpha(0.6)
+		tick:Hide()
+		xp.tick = tick
+		
+		local xpText = xp:CreateFontString(nil, "OVERLAY")
+		xpText:SetPoint("CENTER", xp, "CENTER", 0, 0)
+		xpText:SetFont("Interface\\AddOns\\SteakFrames\\Audiowide-Regular.ttf", 8, "OUTLINE")
+		xpText:SetTextColor(1, 1, 1)
+		frame.xpText = xpText
+	end
+
 	local health = CreateFrame("StatusBar", nil, frame)
 	health:SetPoint("TOPLEFT", frame, "TOPLEFT", 2, -2)
 	health:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -2, 12)
@@ -747,7 +824,7 @@ local function CreateSteakUnitFrame(name, unit, width, height, parent)
 
 	local pvpIcon = health:CreateTexture(nil, "OVERLAY")
 	pvpIcon:SetSize(24, 24)
-	pvpIcon:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -2, -2)
+	pvpIcon:SetPoint("TOPRIGHT", health, "TOPRIGHT", -2, -2)
 	frame.pvpIcon = pvpIcon
 
 	local gsText = frame:CreateFontString(nil, "OVERLAY")
@@ -772,6 +849,14 @@ local function CreateSteakUnitFrame(name, unit, width, height, parent)
 	roleText:SetPoint("LEFT", frame.roleIcon, "RIGHT", 0, 0)
 	roleText:SetTextColor(1, 1, 1)
 	frame.roleText = roleText
+
+	local combatIcon = health:CreateTexture(nil, "OVERLAY")
+	combatIcon:SetSize(14, 14)
+	combatIcon:SetPoint("TOPLEFT", frame, "TOPLEFT", 2, -16)
+	combatIcon:SetTexture("Interface\\CharacterFrame\\UI-StateIcon")
+	combatIcon:SetTexCoord(0.5, 1, 0, 0.5)
+	combatIcon:Hide()
+	frame.combatIcon = combatIcon
 
 	local specText = mana:CreateFontString(nil, "OVERLAY")
 	specText:SetFont("Interface\\AddOns\\SteakFrames\\Audiowide-Regular.ttf", 8, "OUTLINE")
