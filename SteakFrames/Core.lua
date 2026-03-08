@@ -107,8 +107,25 @@ local SteakUnitEvents = {
 local origNotifyInspect = NotifyInspect
 
 NotifyInspect = function(unit)
-	SteakInspectUnitGUID = UnitGUID(unit)
-	origNotifyInspect(unit)
+	if not SteakInspecUnitGUID then
+		SteakInspectUnitGUID = UnitGUID(unit)
+		origNotifyInspect(unit)
+	end
+end
+
+local function UnitInGroup(unit)
+	if not UnitExists(unit) then return false end
+
+	local prefix = GetNumRaidMembers() > 0 and "raid" or "party"
+	local numMembers = prefix == "raid" and GetNumRaidMembers() or GetNumPartyMembers()
+
+	if numMembers == 0 then return false end
+
+	for i=1,numMembers do
+		if UnitExists(prefix..i) and UnitIsUnit(prefix..i, unit) then return true end
+	end
+
+	return false
 end
 
 local function GetUnitGearData(unit)
@@ -560,7 +577,7 @@ local function Steak_OnEvent(self, event, ...)
 	if event == "PLAYER_TARGET_CHANGED" then
 		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and ( UnitExists("target") and UnitIsUnit(self.unit, "target") ) then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
-				if not SteakInspectUnitGUID then
+				if not SteakInspectUnitGUID and not UnitInGroup("target") then
 					--SteakInspectUnitGUID = UnitGUID(self.unit)
 					NotifyInspect(self.unit)
 				end
@@ -569,7 +586,7 @@ local function Steak_OnEvent(self, event, ...)
 	elseif event == "UNIT_TARGET" then
 		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and UnitExists(...) and UnitIsUnit(self.unit, ...) then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
-				if not SteakInspectUnitGUID then
+				if not SteakInspectUnitGUID and not UnitInGroup(...) then
 					--SteakInspectUnitGUID = UnitGUID(self.unit)
 					NotifyInspect(self.unit)
 				end
@@ -578,7 +595,7 @@ local function Steak_OnEvent(self, event, ...)
 	elseif event == "PLAYER_FOCUS_CHANGED" then
 		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and UnitExists("focus") and UnitIsUnit(self.unit, "focus") then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
-				if not SteakInspectUnitGUID then
+				if not SteakInspectUnitGUID and not UnitInGroup("focus") then
 					--SteakInspectUnitGUID = UnitGUID(self.unit)
 					NotifyInspect(self.unit)
 				end
@@ -632,7 +649,7 @@ local function Steak_OnEvent(self, event, ...)
 			Steak_UpdateRole(self)
 			
 			if spec then
-				self.specText:SetText(spec:sub(1, 3))
+				self.specText:SetText(spec:sub(1, 5))
 				SteakInspectUnitGUID = nil
 			end
 		end
@@ -692,7 +709,7 @@ local function Steak_OnEvent(self, event, ...)
 			UpdateRoleIcons(self)
 			--Steak_GetSpec(self)
 			if SteakSpecs[UnitGUID(self.unit)] then
-				self.specText:SetText(SteakSpecs[UnitGUID(self.unit)])
+				self.specText:SetText(SteakSpecs[UnitGUID(self.unit)]:sub(1, 5))
 			end
 
 			local index = tonumber(self.unit:match("^raid(%d+)$"))
