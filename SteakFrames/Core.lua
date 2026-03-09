@@ -176,7 +176,10 @@ local function GetUnitGearData(unit)
 end
 
 local function Steak_GetSpec(self)
-	if not UnitIsPlayer(self.unit) then return end
+	if not UnitIsPlayer(self.unit) then
+		self.specText:SetText("")
+		return
+	end
 
 	local guid = UnitGUID(self.unit)
 	if not guid then return nil end
@@ -577,7 +580,8 @@ local function Steak_OnEvent(self, event, ...)
 	if event == "PLAYER_TARGET_CHANGED" then
 		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and ( UnitExists("target") and UnitIsUnit(self.unit, "target") ) then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
-				if not SteakInspectUnitGUID and not UnitInGroup("target") then
+				--if not SteakInspectUnitGUID and not UnitInGroup("target") then
+				if not SteakInspectUnitGUID then
 					--SteakInspectUnitGUID = UnitGUID(self.unit)
 					NotifyInspect(self.unit)
 				end
@@ -586,7 +590,8 @@ local function Steak_OnEvent(self, event, ...)
 	elseif event == "UNIT_TARGET" then
 		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and UnitExists(...) and UnitIsUnit(self.unit, ...) then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
-				if not SteakInspectUnitGUID and not UnitInGroup(...) then
+				--if not SteakInspectUnitGUID and not UnitInGroup(...) then
+				if not SteakInspectUnitGUID then
 					--SteakInspectUnitGUID = UnitGUID(self.unit)
 					NotifyInspect(self.unit)
 				end
@@ -595,7 +600,8 @@ local function Steak_OnEvent(self, event, ...)
 	elseif event == "PLAYER_FOCUS_CHANGED" then
 		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and UnitExists("focus") and UnitIsUnit(self.unit, "focus") then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
-				if not SteakInspectUnitGUID and not UnitInGroup("focus") then
+				--if not SteakInspectUnitGUID and not UnitInGroup("focus") then
+				if not SteakInspectUnitGUID then
 					--SteakInspectUnitGUID = UnitGUID(self.unit)
 					NotifyInspect(self.unit)
 				end
@@ -651,6 +657,8 @@ local function Steak_OnEvent(self, event, ...)
 			if spec then
 				self.specText:SetText(spec:sub(1, 5))
 				SteakInspectUnitGUID = nil
+			else
+				self.specText:SetText("")
 			end
 		end
 	elseif event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" then
@@ -707,10 +715,12 @@ local function Steak_OnEvent(self, event, ...)
 			Steak_UpdateGS(self)
 			Steak_UpdateRole(self)
 			UpdateRoleIcons(self)
-			--Steak_GetSpec(self)
+			Steak_GetSpec(self)
+			--[[
 			if SteakSpecs[UnitGUID(self.unit)] then
 				self.specText:SetText(SteakSpecs[UnitGUID(self.unit)]:sub(1, 5))
 			end
+			]]
 
 			local index = tonumber(self.unit:match("^raid(%d+)$"))
 			if index then
@@ -931,6 +941,11 @@ local function CreateSteakUnitFrame(name, unit, width, height, parent)
 
 	frame:SetScript("OnLeave", function(self)
 		GameTooltip:Hide()
+	end)
+
+	frame:HookScript("OnShow", function(self)
+		self.specText:SetText("")
+		self.roleIcon:Hide()
 	end)
 
 	RegisterUnitWatch(frame)
