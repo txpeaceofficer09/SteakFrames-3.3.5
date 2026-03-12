@@ -385,19 +385,19 @@ local function UpdateRoleIcons(self)
 	local roleText = ""
 
 	if UnitIsRaidOfficer(self.unit) and UnitIsPartyLeader(self.unit) then
-		roleText = string.format("%s|T%s:14:14|t ", roleText, "Interface\\GroupFrame\\UI-Group-LeaderIcon")
+		roleText = string.format("%s|T%s:14:14|t ", roleText, "Interface\\GROUPFRAME\\UI-Group-LeaderIcon")
 	end
 
 	if UnitIsRaidOfficer(self.unit) and not UnitIsPartyLeader(self.unit) then
-		roleText = string.format("%s|T%s:14:14|t ", roleText, "Interface\\GroupFrame\\UI-Group-AssistantIcon")
+		roleText = string.format("%s|T%s:14:14|t ", roleText, "Interface\\GROUPFRAME\\UI-Group-AssistantIcon")
 	end
 
 	if GetPartyAssignment("MAINTANK", self.unit) then
-		roleText = string.format("%s|T%s:14:14|t ", roleText, "Interface\\GroupFrame\\UI-Group-MainTankIcon")
+		roleText = string.format("%s|T%s:14:14|t ", roleText, "Interface\\GROUPFRAME\\UI-Group-MainTankIcon")
 	end
 
 	if GetPartyAssignment("MAINASSIST", self.unit) then
-		roleText = string.format("%s|T%s:14:14|t ", roleText, "Interface\\GroupFrame\\UI-Group-MainAssistIcon")
+		roleText = string.format("%s|T%s:14:14|t ", roleText, "Interface\\GROUPFRAME\\UI-Group-MainAssistIcon")
 	end
 
 	local method, mlPartyID, mlRaidID = GetLootMethod()

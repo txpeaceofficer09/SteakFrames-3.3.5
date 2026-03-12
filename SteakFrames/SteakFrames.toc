@@ -1,4 +1,6 @@
 ## Interface: 30300
 ## Title: SteakFrames
 ## Notes: Configures and moves unit frames.
+## Version: 1.0.0
+## Author: SoonBeSteak
 Core.lua
