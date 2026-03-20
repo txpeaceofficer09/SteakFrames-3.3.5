@@ -96,7 +96,7 @@ local SteakUnitEvents = {
 	"INSPECT_READY",
 	"PLAYER_FOCUS_CHANGED",
 	"UNIT_INVENTORY_CHANGED",
-	"INSPECT_TALENT_READY",
+	--"INSPECT_TALENT_READY",
 	"PARTY_LOOT_METHOD_CHANGED",
 	"UNIT_COMBO_POINTS",
 	"PLAYER_XP_UPDATE",
@@ -104,6 +104,7 @@ local SteakUnitEvents = {
 	"UPDATE_EXHAUSTION"
 }
 
+--[[
 local origNotifyInspect = NotifyInspect
 
 NotifyInspect = function(unit)
@@ -112,6 +113,7 @@ NotifyInspect = function(unit)
 		origNotifyInspect(unit)
 	end
 end
+]]
 
 local function UnitInGroup(unit)
 	if not UnitExists(unit) then return false end
@@ -175,6 +177,7 @@ local function GetUnitGearData(unit)
 	return math.floor(totalGS), math.floor(totalIlvl / count)
 end
 
+--[[
 local function Steak_GetSpec(self)
 	if not UnitIsPlayer(self.unit) then
 		self.specText:SetText("")
@@ -201,6 +204,7 @@ local function Steak_GetSpec(self)
 	SteakSpecs[guid] = specName
 	return specName
 end
+]]
 
 local function Steak_UpdateThreat(self)
 	if not UnitExists(self.unit) then return end
@@ -578,6 +582,7 @@ end
 
 local function Steak_OnEvent(self, event, ...)
 	if event == "PLAYER_TARGET_CHANGED" then
+		--[[
 		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and ( UnitExists("target") and UnitIsUnit(self.unit, "target") ) then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
 				--if not SteakInspectUnitGUID and not UnitInGroup("target") then
@@ -587,7 +592,9 @@ local function Steak_OnEvent(self, event, ...)
 				end
 			end
 		end
+		]]
 	elseif event == "UNIT_TARGET" then
+		--[[
 		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and UnitExists(...) and UnitIsUnit(self.unit, ...) then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
 				--if not SteakInspectUnitGUID and not UnitInGroup(...) then
@@ -597,7 +604,9 @@ local function Steak_OnEvent(self, event, ...)
 				end
 			end
 		end
+		]]
 	elseif event == "PLAYER_FOCUS_CHANGED" then
+		--[[
 		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and UnitExists("focus") and UnitIsUnit(self.unit, "focus") then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
 				--if not SteakInspectUnitGUID and not UnitInGroup("focus") then
@@ -607,6 +616,7 @@ local function Steak_OnEvent(self, event, ...)
 				end
 			end
 		end
+		]]
 	end
 
 	if event == "PLAYER_XP_UPDATE" or event == "PLAYER_LEVEL_UP" or event == "UPDATE_EXHAUSTION" or event == "PLAYER_ENTERING_WORLD" then
@@ -704,7 +714,8 @@ local function Steak_OnEvent(self, event, ...)
 				end
 			end
 		end
-	else
+	--else
+	end
 		if UnitExists(self.unit) then
 			Steak_UpdateHealth(self)
 			Steak_UpdatePower(self)
@@ -715,7 +726,7 @@ local function Steak_OnEvent(self, event, ...)
 			Steak_UpdateGS(self)
 			Steak_UpdateRole(self)
 			UpdateRoleIcons(self)
-			Steak_GetSpec(self)
+			--Steak_GetSpec(self)
 			--[[
 			if SteakSpecs[UnitGUID(self.unit)] then
 				self.specText:SetText(SteakSpecs[UnitGUID(self.unit)]:sub(1, 5))
@@ -731,7 +742,7 @@ local function Steak_OnEvent(self, event, ...)
 				self.groupText:SetText("")
 			end
 		end
-	end
+	--end
 end
 
 local function CreateSteakUnitFrame(name, unit, width, height, parent)
@@ -851,7 +862,7 @@ local function CreateSteakUnitFrame(name, unit, width, height, parent)
 
 	local pvpIcon = health:CreateTexture(nil, "OVERLAY")
 	pvpIcon:SetSize(24, 24)
-	pvpIcon:SetPoint("TOPRIGHT", health, "TOPRIGHT", -2, -2)
+	pvpIcon:SetPoint("TOP", health, "TOPRIGHT", 0, 0)
 	frame.pvpIcon = pvpIcon
 
 	local gsText = frame:CreateFontString(nil, "OVERLAY")
@@ -959,19 +970,32 @@ local SteakTarget = CreateSteakUnitFrame("SteakTargetFrame", "target", 140, 50)
 local SteakToT = CreateSteakUnitFrame("SteakToTFrame", "targettarget", 110, 40)
 local SteakFocus = CreateSteakUnitFrame("SteakFocusFrame", "focus", 140, 50)
 
+for i=1,4 do
+	local boss = CreateSteakUnitFrame("SteakBoss"..i.."Frame", "boss"..i, 110, 40)
+	
+	boss:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -250, 400+(80*(i-1)))
+end
+
 local raidParent = CreateFrame("Frame", "SteakRaidHeader", UIParent, "SecureHandlerStateTemplate")
-raidParent:SetSize((110*10)+(4*9), 40)
-raidParent:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 300)
+raidParent:SetSize((110*5)+(4*4), 88)
+raidParent:SetPoint("BOTTOMLEFT", UIParent, "BOTTOM", -100, 150)
 RegisterStateDriver(raidParent, "visibility", "[group:raid] show; hide")
 
 for i=1,10 do
 	local raidFrame = CreateSteakUnitFrame("SteakRaid"..i, "raid"..i, 110, 40, raidParent)
-	raidFrame:SetPoint("LEFT", raidParent, "LEFT", 114*(i-1), 0)
+	--raidFrame:SetPoint("LEFT", raidParent, "LEFT", 114*(i-1), 0)
+	if i == 1 then
+		raidFrame:SetPoint("BOTTOMLEFT", raidParent, "BOTTOMLEFT", 0, 0)
+	elseif i == 6 then
+		raidFrame:SetPoint("BOTTOM", SteakRaid1, "TOP", 0, 4)
+	else
+		raidFrame:SetPoint("RIGHT", _G["SteakRaid"..(i-1)], "LEFT", 4, 0)
+	end
 end
 
 local partyParent = CreateFrame("Frame", "SteakPartyHeader", UIParent, "SecureHandlerStateTemplate")
 partyParent:SetSize((140*4)+(4*3), 50)
-partyParent:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 300)
+partyParent:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 150)
 RegisterStateDriver(partyParent, "visibility", "[group:raid] hide; [group:party] show; hide")
 
 for i=1,4 do
@@ -983,20 +1007,21 @@ for i=1,4 do
 end
 
 SteakPlayer:ClearAllPoints()
-SteakPlayer:SetPoint("BOTTOM", UIParent, "BOTTOM", -150, 220)
+SteakPlayer:SetPoint("BOTTOM", UIParent, "BOTTOM", -200, 280)
 
 SteakTarget:ClearAllPoints()
-SteakTarget:SetPoint("BOTTOM", UIParent, "BOTTOM", 150, 220)
+SteakTarget:SetPoint("BOTTOM", UIParent, "BOTTOM", 200, 280)
 
 SteakFocus:ClearAllPoints()
 SteakFocus:SetPoint("LEFT", SteakTarget, "RIGHT", 40, 0)
 
 SteakToT:ClearAllPoints()
-SteakToT:SetPoint("TOP", SteakTarget, "BOTTOM", 40, -25)
+SteakToT:SetPoint("BOTTOM", SteakTarget, "TOP", 40, 25)
 
 SteakPet:ClearAllPoints()
-SteakPet:SetPoint("TOP", SteakPlayer, "BOTTOM", 10, -25)
+SteakPet:SetPoint("BOTTOM", SteakPlayer, "TOP", 10, 25)
 
+--[[
 local targetBuffs = CreateFrame("Frame", nil, UIParent)
 
 targetBuffs:SetPoint("TOPLEFT", SteakTarget, "BOTTOMLEFT", 0, -18)
@@ -1078,6 +1103,7 @@ targetBuffs:SetScript("OnEvent", function(self, event, unit)
 		end
 	end
 end)
+]]
 
 local h = CreateFrame("Frame")
 
