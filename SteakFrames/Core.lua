@@ -978,7 +978,7 @@ end
 
 local raidParent = CreateFrame("Frame", "SteakRaidHeader", UIParent, "SecureHandlerStateTemplate")
 raidParent:SetSize((110*5)+(4*4), 88)
-raidParent:SetPoint("BOTTOMLEFT", UIParent, "BOTTOM", -100, 150)
+raidParent:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 150)
 RegisterStateDriver(raidParent, "visibility", "[group:raid] show; hide")
 
 for i=1,10 do
@@ -989,7 +989,7 @@ for i=1,10 do
 	elseif i == 6 then
 		raidFrame:SetPoint("BOTTOM", SteakRaid1, "TOP", 0, 4)
 	else
-		raidFrame:SetPoint("RIGHT", _G["SteakRaid"..(i-1)], "LEFT", 4, 0)
+		raidFrame:SetPoint("LEFT", _G["SteakRaid"..(i-1)], "RIGHT", 4, 0)
 	end
 end
 
@@ -1007,10 +1007,10 @@ for i=1,4 do
 end
 
 SteakPlayer:ClearAllPoints()
-SteakPlayer:SetPoint("BOTTOM", UIParent, "BOTTOM", -200, 280)
+SteakPlayer:SetPoint("BOTTOM", UIParent, "BOTTOM", -220, 300)
 
 SteakTarget:ClearAllPoints()
-SteakTarget:SetPoint("BOTTOM", UIParent, "BOTTOM", 200, 280)
+SteakTarget:SetPoint("BOTTOM", UIParent, "BOTTOM", 220, 300)
 
 SteakFocus:ClearAllPoints()
 SteakFocus:SetPoint("LEFT", SteakTarget, "RIGHT", 40, 0)
