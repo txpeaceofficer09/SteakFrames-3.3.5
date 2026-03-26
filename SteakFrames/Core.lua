@@ -4,6 +4,8 @@ SteakUnitsParent:SetAllPoints(UIParent)
 local GearScores = {}
 local SteakSpecs = {}
 local SteakAuras = {}
+local SteakInspectUnitGUID = nil
+local SteakInspectUnit = nil
 
 local DebuffTypeIcons = {
 	Magic   = "Interface\\Icons\\Spell_Holy_DispelMagic",
@@ -11,6 +13,31 @@ local DebuffTypeIcons = {
 	Disease = "Interface\\Icons\\Spell_Nature_NullifyDisease",
 	Poison  = "Interface\\Icons\\Spell_Nature_NullifyPoison",
 }
+
+local DebuffColors = {
+	Magic = {0.20, 0.60, 1.00, 0.40},  -- blue
+	Curse = {0.60, 0.00, 1.00, 0.40},  -- purple
+	Disease = {0.60, 0.40, 0.00, 0.40},  -- brown
+	Poison = {0.00, 0.60, 0.00, 0.40},  -- green
+}
+
+local CanDispel = {}
+
+local _, class = UnitClass("player")
+
+if class == "WARLOCK" then
+	CanDispel = { Magic = true, Curse = true }
+elseif class == "PRIEST" then
+	CanDispel = { Magic = true, Disease = true }
+elseif class == "PALADIN" then
+	CanDispel = { Magic = true, Poison = true, Disease = true }
+elseif class == "SHAMAN" then
+	CanDispel = { Magic = true, Curse = true }
+elseif class == "DRUID" then
+	CanDispel = { Curse = true, Poison = true }
+elseif class == "MAGE" then
+	CanDispel = { Magic = true }
+end
 
 local SteakSpecRoles = {
     -- Warriors
@@ -96,24 +123,33 @@ local SteakUnitEvents = {
 	"INSPECT_READY",
 	"PLAYER_FOCUS_CHANGED",
 	"UNIT_INVENTORY_CHANGED",
-	--"INSPECT_TALENT_READY",
+	"INSPECT_TALENT_READY",
 	"PARTY_LOOT_METHOD_CHANGED",
 	"UNIT_COMBO_POINTS",
 	"PLAYER_XP_UPDATE",
 	"PLAYER_LEVEL_UP",
-	"UPDATE_EXHAUSTION"
+	"UPDATE_EXHAUSTION",
+	"UPDATE_INVENTORY_DURABILITY"
 }
 
---[[
 local origNotifyInspect = NotifyInspect
 
 NotifyInspect = function(unit)
+	if unit and UnitExists(unit) and UnitIsPlayer(unit) then
+		SteakInspectUnit = unit
+		SteakInspectUnitGUID = UnitGUID(unit)
+	else
+		SteakInspectUnit = nil
+		SteakInspectUnitGUID = nil
+	end
+	
 	if not SteakInspecUnitGUID then
 		SteakInspectUnitGUID = UnitGUID(unit)
 		origNotifyInspect(unit)
 	end
+	
+	return origNotifyInspect(unit)
 end
-]]
 
 local function UnitInGroup(unit)
 	if not UnitExists(unit) then return false end
@@ -177,7 +213,6 @@ local function GetUnitGearData(unit)
 	return math.floor(totalGS), math.floor(totalIlvl / count)
 end
 
---[[
 local function Steak_GetSpec(self)
 	if not UnitIsPlayer(self.unit) then
 		self.specText:SetText("")
@@ -204,7 +239,6 @@ local function Steak_GetSpec(self)
 	SteakSpecs[guid] = specName
 	return specName
 end
-]]
 
 local function Steak_UpdateThreat(self)
 	if not UnitExists(self.unit) then return end
@@ -423,6 +457,41 @@ local function UpdateRoleIcons(self)
 	self.roleText:SetText(roleText)
 end
 
+local function Steak_UnitAura(self)
+	if UnitIsFriend("player", self.unit) then
+		local foundType = nil
+
+		for i=1,40 do
+			local name, _, _, _, debuffType = UnitDebuff(self.unit, i)
+
+			if debuffType and DebuffColors[debuffType] and CanDispel[debuffType] then
+				foundType = debuffType
+				break
+			end
+		end
+
+		if foundType then
+			local r, g, b, a = unpack(DebuffColors[foundType])
+
+			self.debuff:SetTexture(r, g, b, a)
+		else
+			self.debuff:SetTexture(0, 0, 0, 0)
+		end
+	else
+		for i=1,40 do
+			local name, _, _, _, debuffType, _, _, _, stealable = UnitBuff(self.unit, i)
+
+			if stealable then
+				local r, g, b, a = unpack(DebuffColors.Magic]
+
+				self.debuff:SetTexture(r, g, b, a)
+			else
+				self.debuff:SetTexture(0, 0, 0, 0)
+			end
+		end
+	end
+end
+
 local function Steak_UpdateDebuffs(self)
 	local unit = self.unit
 	if not UnitExists(unit) then return end
@@ -582,7 +651,6 @@ end
 
 local function Steak_OnEvent(self, event, ...)
 	if event == "PLAYER_TARGET_CHANGED" then
-		--[[
 		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and ( UnitExists("target") and UnitIsUnit(self.unit, "target") ) then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
 				--if not SteakInspectUnitGUID and not UnitInGroup("target") then
@@ -592,9 +660,7 @@ local function Steak_OnEvent(self, event, ...)
 				end
 			end
 		end
-		]]
 	elseif event == "UNIT_TARGET" then
-		--[[
 		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and UnitExists(...) and UnitIsUnit(self.unit, ...) then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
 				--if not SteakInspectUnitGUID and not UnitInGroup(...) then
@@ -604,9 +670,7 @@ local function Steak_OnEvent(self, event, ...)
 				end
 			end
 		end
-		]]
 	elseif event == "PLAYER_FOCUS_CHANGED" then
-		--[[
 		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and UnitExists("focus") and UnitIsUnit(self.unit, "focus") then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
 				--if not SteakInspectUnitGUID and not UnitInGroup("focus") then
@@ -616,7 +680,6 @@ local function Steak_OnEvent(self, event, ...)
 				end
 			end
 		end
-		]]
 	end
 
 	if event == "PLAYER_XP_UPDATE" or event == "PLAYER_LEVEL_UP" or event == "UPDATE_EXHAUSTION" or event == "PLAYER_ENTERING_WORLD" then
@@ -691,6 +754,10 @@ local function Steak_OnEvent(self, event, ...)
 				self.combatIcon:Hide()
 			end
 		end
+	elseif event == "UNIT_AURA" then
+		if UnitExists(self.unit) then
+			Steak_UnitAura(self)
+		end
 	elseif event == "UNIT_COMBO_POINTS" then
 		if self.unit == "target" then
 			self.cp = self.cp or {}
@@ -727,11 +794,12 @@ local function Steak_OnEvent(self, event, ...)
 			Steak_UpdateRole(self)
 			UpdateRoleIcons(self)
 			--Steak_GetSpec(self)
-			--[[
+			if not SteakSpecs[UnitGUID(self.unit)] and not SteakInspectUnitGUID then
+				NotifyInspect(self.unit)
+			end
 			if SteakSpecs[UnitGUID(self.unit)] then
 				self.specText:SetText(SteakSpecs[UnitGUID(self.unit)]:sub(1, 5))
 			end
-			]]
 
 			local index = tonumber(self.unit:match("^raid(%d+)$"))
 			if index then
@@ -743,6 +811,18 @@ local function Steak_OnEvent(self, event, ...)
 			end
 		end
 	--end
+
+	if self.unit == "player" and ( event == "PLAYER_ENTERING_WORLD" or event == "UPDATE_INVENTORY_DURABILITY" ) then
+		if not InCombatLockdown() then
+			local w, h = DurabilityFrame:GetSize()
+			local scale = SteakPlayerFrame:GetHeight() / h
+			DurabilityFrame:SetSize(w * scale, h * scale)
+			--DurabilityFrame:SetScale(SteakPlayerFrame:GetHeight() / DurabilityFrame:GetHeight())
+
+			DurabilityFrame:ClearAllPoints()
+			DurabilityFrame:SetPoint("TOPLEFT", self, "TOPRIGHT", 5, 0)
+		end
+	end
 end
 
 local function CreateSteakUnitFrame(name, unit, width, height, parent)
@@ -829,6 +909,11 @@ local function CreateSteakUnitFrame(name, unit, width, height, parent)
 	health:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
 	health:SetMinMaxValues(0, 100)
 	frame.health = health
+
+	local debuff = frame:CreateTexture(nil, "ARTWORK")
+	debuff:SetAllPoints(frame)
+	debuff:SetTexture(0, 0, 0, 0)
+	frame.debuff = debuff
 
 	local mana = CreateFrame("StatusBar", nil, frame)
 	mana:SetPoint("TOPLEFT", health, "BOTTOMLEFT", 0, -1)
