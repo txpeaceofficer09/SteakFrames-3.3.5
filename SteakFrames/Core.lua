@@ -484,7 +484,7 @@ local function Steak_UnitAura(self)
 			local name, _, _, _, debuffType, _, _, _, stealable = UnitBuff(self.unit, i)
 
 			if stealable then
-				local r, g, b, a = unpack(DebuffColors.Magic]
+				local r, g, b, a = unpack(DebuffColors.Magic)
 
 				self.debuff:SetTexture(r, g, b, a)
 			else
