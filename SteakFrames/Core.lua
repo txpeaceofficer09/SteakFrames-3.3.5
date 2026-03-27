@@ -5,7 +5,6 @@ local GearScores = {}
 local SteakSpecs = {}
 local SteakAuras = {}
 local SteakInspectUnitGUID = nil
-local SteakInspectUnit = nil
 
 local DebuffTypeIcons = {
 	Magic   = "Interface\\Icons\\Spell_Holy_DispelMagic",
@@ -135,20 +134,23 @@ local SteakUnitEvents = {
 local origNotifyInspect = NotifyInspect
 
 NotifyInspect = function(unit)
-	if unit and UnitExists(unit) and UnitIsPlayer(unit) then
+	--[[
+	if unit and UnitExists(unit) and UnitIsPlayer(unit) and CanInspect(unit) then
 		SteakInspectUnit = unit
 		SteakInspectUnitGUID = UnitGUID(unit)
 	else
 		SteakInspectUnit = nil
 		SteakInspectUnitGUID = nil
 	end
-	
-	if not SteakInspecUnitGUID then
+	]]
+
+	if not SteakInspectUnitGUID and unit and UnitIsPlayer(unit) and CanInspect(unit) then
 		SteakInspectUnitGUID = UnitGUID(unit)
-		origNotifyInspect(unit)
+
+		return origNotifyInspect(unit)
 	end
 	
-	return origNotifyInspect(unit)
+	--return origNotifyInspect(unit)
 end
 
 local function UnitInGroup(unit)
