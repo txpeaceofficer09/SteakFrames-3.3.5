@@ -2,9 +2,170 @@ local SteakUnitsParent = CreateFrame("Frame", "SteakUnitsParent", UIParent, "Sec
 SteakUnitsParent:SetAllPoints(UIParent)
 
 local GearScores = {}
-local SteakSpecs = {}
 local SteakAuras = {}
-local SteakInspectUnitGUID = nil
+
+local SteakRoleSpecificSpells = {
+	-- BLOOD
+	[45902] = "Blood",        -- Blood Strike
+	[55262] = "Blood",        -- Heart Strike
+	[48982] = "Blood",        -- Rune Tap
+	[49005] = "Blood",        -- Mark of Blood
+	[48721] = "Blood",        -- Blood Boil
+	[48266] = "Blood",        -- Blood Presence
+
+	-- FROST
+	[49143] = "Frost",        -- Frost Strike
+	[49184] = "Frost",        -- Howling Blast
+	[51271] = "Frost",        -- Unbreakable Armor
+	[48263] = "Frost",        -- Frost Presence
+
+	-- UNHOLY
+	[55090] = "Unholy",       -- Scourge Strike
+	[49206] = "Unholy",       -- Summon Gargoyle
+	[49222] = "Unholy",       -- Bone Shield
+	[48265] = "Unholy",       -- Unholy Presence
+
+	-- BALANCE
+	[24858] = "Balance",      -- Moonkin Form
+	[33831] = "Balance",      -- Force of Nature
+	[61384] = "Balance",      -- Typhoon
+	[48505] = "Balance",      -- Starfall
+
+	-- FERAL
+	[48566] = "Feral",        -- Mangle (Cat)
+	[48564] = "Feral",        -- Mangle (Bear)
+	[50334] = "Feral",        -- Berserk
+	[61336] = "Feral",        -- Survival Instincts
+
+	-- RESTORATION
+	[48438] = "Restoration",  -- Wild Growth
+	[33891] = "Restoration",  -- Tree of Life
+	[18562] = "Restoration",  -- Swiftmend
+	[50464] = "Restoration",  -- Nourish
+
+	-- BEAST MASTERY
+	[19574] = "BeastMastery", -- Bestial Wrath
+	[34026] = "BeastMastery", -- Kill Command
+	[19577] = "BeastMastery", -- Intimidation
+
+	-- MARKSMANSHIP
+	[49050] = "Marksmanship", -- Aimed Shot
+	[53209] = "Marksmanship", -- Chimera Shot
+	[34490] = "Marksmanship", -- Silencing Shot
+
+	-- SURVIVAL
+	[60053] = "Survival",     -- Explosive Shot
+	[3674]  = "Survival",     -- Black Arrow
+	[19386] = "Survival",     -- Wyvern Sting
+
+	-- ARCANE
+	[44425] = "Arcane",       -- Arcane Barrage
+	[42897] = "Arcane",       -- Arcane Blast
+	[66]    = "Arcane",       -- Invisibility
+	[31589] = "Arcane",       -- Slow
+
+	-- FIRE
+	[31661] = "Fire",         -- Dragon's Breath
+	[42945] = "Fire",         -- Blast Wave
+	[11129] = "Fire",         -- Combustion
+	[55360] = "Fire",         -- Living Bomb
+
+	-- FROST
+	[31687] = "Frost",        -- Summon Water Elemental
+	[44572] = "Frost",        -- Deep Freeze
+	[43039] = "Frost",        -- Ice Barrier
+	[47610] = "Frost",        -- Frostfire Bolt (Frost-only spellbook)
+
+	-- HOLY
+	[20473] = "Holy",         -- Holy Shock
+	[53563] = "Holy",         -- Beacon of Light
+	[53601] = "Holy",         -- Sacred Shield
+
+	-- PROTECTION
+	[53595] = "Protection",   -- Hammer of the Righteous
+	[53600] = "Protection",   -- Shield of Righteousness
+	[64205] = "Protection",   -- Divine Sacrifice
+
+	-- RETRIBUTION
+	[35395] = "Retribution",  -- Crusader Strike
+	[53385] = "Retribution",  -- Divine Storm
+	[20066] = "Retribution",  -- Repentance
+
+	-- DISCIPLINE
+	[47540] = "Discipline",   -- Penance
+	[10060] = "Discipline",   -- Power Infusion
+	[33206] = "Discipline",   -- Pain Suppression
+
+	-- HOLY
+	[34861] = "Holy",         -- Circle of Healing
+	[47788] = "Holy",         -- Guardian Spirit
+	[724]   = "Holy",         -- Lightwell
+
+	-- SHADOW
+	[34914] = "Shadow",       -- Vampiric Touch
+	[15473] = "Shadow",       -- Shadowform
+	[48300] = "Shadow",       -- Devouring Plague (universal in WotLK)
+
+	-- ASSASSINATION
+	[1329]  = "Assassination", -- Mutilate
+	[32645] = "Assassination", -- Envenom
+	[51662] = "Assassination", -- Hunger for Blood
+
+	-- COMBAT
+	[51690] = "Combat",        -- Killing Spree
+	[13750] = "Combat",        -- Adrenaline Rush
+	[13877] = "Combat",        -- Blade Flurry
+
+	-- SUBTLETY
+	[36554] = "Subtlety",      -- Shadowstep
+	[16511] = "Subtlety",      -- Hemorrhage
+	[14185] = "Subtlety",      -- Preparation
+
+	-- ELEMENTAL
+	[51490] = "Elemental",     -- Thunderstorm
+	[16166] = "Elemental",     -- Elemental Mastery
+	[60043] = "Elemental",     -- Lava Burst
+
+	-- ENHANCEMENT
+	[51533] = "Enhancement",   -- Feral Spirit
+	[30823] = "Enhancement",   -- Shamanistic Rage
+	[60103] = "Enhancement",   -- Lava Lash
+
+	-- RESTORATION
+	[61295] = "Restoration",   -- Riptide
+	[974]   = "Restoration",   -- Earth Shield
+	[55198] = "Restoration",   -- Tidal Force
+
+	-- AFFLICTION
+	[30108] = "Affliction",    -- Unstable Affliction
+	[48181] = "Affliction",    -- Haunt
+	[63108] = "Affliction",    -- Siphon Life (baseline in WotLK)
+
+	-- DEMONOLOGY
+	[59672] = "Demonology",    -- Metamorphosis
+	[47193] = "Demonology",    -- Demonic Empowerment
+	[30146] = "Demonology",    -- Summon Felguard
+
+	-- DESTRUCTION
+	[50796] = "Destruction",   -- Chaos Bolt
+	[30283] = "Destruction",   -- Shadowfury
+	[17962] = "Destruction",   -- Conflagrate
+
+	-- ARMS
+	[12294] = "Arms",          -- Mortal Strike
+	[46924] = "Arms",          -- Bladestorm
+	[12328] = "Arms",          -- Sweeping Strikes
+
+	-- FURY
+	[23881] = "Fury",          -- Bloodthirst
+	[46917] = "Fury",          -- Titan's Grip (passive but spec-unique)
+	[29801] = "Fury",          -- Rampage
+
+	-- PROTECTION
+	[23922] = "Protection",    -- Shield Slam
+	[46968] = "Protection",    -- Shockwave
+	[50227] = "Protection",    -- Sword and Board
+}
 
 local DebuffTypeIcons = {
 	Magic   = "Interface\\Icons\\Spell_Holy_DispelMagic",
@@ -119,39 +280,17 @@ local SteakUnitEvents = {
 	"PLAYER_PET_CHANGED",
 	"PLAYER_TARGET_CHANGED",
 	"UNIT_TARGET",
-	"INSPECT_READY",
 	"PLAYER_FOCUS_CHANGED",
 	"UNIT_INVENTORY_CHANGED",
-	"INSPECT_TALENT_READY",
 	"PARTY_LOOT_METHOD_CHANGED",
 	"UNIT_COMBO_POINTS",
 	"PLAYER_XP_UPDATE",
 	"PLAYER_LEVEL_UP",
 	"UPDATE_EXHAUSTION",
-	"UPDATE_INVENTORY_DURABILITY"
+	--"UPDATE_INVENTORY_DURABILITY",
+	"VARIABLES_LOADED",
+	"COMBAT_LOG_EVENT_UNFILTERED"
 }
-
-local origNotifyInspect = NotifyInspect
-
-NotifyInspect = function(unit)
-	--[[
-	if unit and UnitExists(unit) and UnitIsPlayer(unit) and CanInspect(unit) then
-		SteakInspectUnit = unit
-		SteakInspectUnitGUID = UnitGUID(unit)
-	else
-		SteakInspectUnit = nil
-		SteakInspectUnitGUID = nil
-	end
-	]]
-
-	if not SteakInspectUnitGUID and unit and UnitIsPlayer(unit) and CanInspect(unit) then
-		SteakInspectUnitGUID = UnitGUID(unit)
-
-		return origNotifyInspect(unit)
-	end
-	
-	--return origNotifyInspect(unit)
-end
 
 local function UnitInGroup(unit)
 	if not UnitExists(unit) then return false end
@@ -215,33 +354,6 @@ local function GetUnitGearData(unit)
 	return math.floor(totalGS), math.floor(totalIlvl / count)
 end
 
-local function Steak_GetSpec(self)
-	if not UnitIsPlayer(self.unit) then
-		self.specText:SetText("")
-		return
-	end
-
-	local guid = UnitGUID(self.unit)
-	if not guid then return nil end
-
-	if guid ~= SteakInspectUnitGUID then return nil end
-
-	local maxPoints = 0
-	local specName = nil
-
-	for tab = 1, GetNumTalentTabs(true) do
-		local name, _, points = GetTalentTabInfo(tab, true, nil, self.unit)
-
-		if points and points > maxPoints then
-			maxPoints = points
-			specName = name
-		end
-	end
-
-	SteakSpecs[guid] = specName
-	return specName
-end
-
 local function Steak_UpdateThreat(self)
 	if not UnitExists(self.unit) then return end
 
@@ -301,6 +413,8 @@ local function Steak_UpdateRole(self)
 	local role = UnitGroupRolesAssigned(self.unit)
 	local guid = UnitGUID(self.unit)
 	local spec = guid and SteakSpecs[guid]
+	--local talents = guid and SteakTalents[guid]
+	--local spec = self.spec
 
 	if role == "NONE" or not role or role == "" then
 		if spec then
@@ -319,21 +433,23 @@ local function Steak_UpdateRole(self)
 		end
 	end
 
+--local tankIcon = "|TInterface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES.blp:16:16:0:%d:64:64:0:19:22:41|t";
+--local healerIcon = "|TInterface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES.blp:16:16:0:%d:64:64:20:39:1:20|t";
+--local damageIcon = "|TInterface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES.blp:16:16:0:%d:64:64:20:39:22:41|t";
+	--self.roleIcon:SetTexture("Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES")
+
 	if role == "TANK" then
 		self.roleIcon:SetTexture("Interface\\AddOns\\SteakFrames\\tank_32.tga")
-
+		--self.roleIcon:SetTexCoord(0, 19/64, 22/64, 41/64)
 		self.roleIcon:Show()
-
 	elseif role == "HEALER" then
 		self.roleIcon:SetTexture("Interface\\AddOns\\SteakFrames\\healer_32.tga")
-
+		--self.roleIcon:SetTexCoord(20/64, 39/64, 1/64, 20/64)
 		self.roleIcon:Show()
-
 	elseif role == "DAMAGER" then
 		self.roleIcon:SetTexture("Interface\\AddOns\\SteakFrames\\dps_32.tga")
-
+		--self.roleIcon:SetTexCoord(20/64, 39/64, 22/64, 41/64)
 		self.roleIcon:Show()
-
 	else
 		self.roleIcon:Hide()
 	end
@@ -642,22 +758,29 @@ local function Steak_UpdateGS(self)
 end
 
 local function Steak_OnUpdate(self, elapsed)
-	if UnitExists(self.unit) and not UnitIsUnit("player", self.unit) then
-		if CheckInteractDistance(self.unit, 1) or UnitIsUnit(self.unit, "player") then
+	if UnitIsUnit(self.unit, "player") then
+		self:SetAlpha(1)
+		return
+	end
+
+	if UnitExists(self.unit) then
+		if CheckInteractDistance(self.unit, 1) then
 			self:SetAlpha(1)
 		else
-			self:SetAlpha(0.2)
+			self:SetAlpha(0.4)
 		end
 	end
 end
 
 local function Steak_OnEvent(self, event, ...)
+	if event == "VARIABLES_LOADED" then
+		SteakSpecs = SteakSpecs or {}
+	end
+	
 	if event == "PLAYER_TARGET_CHANGED" then
 		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and ( UnitExists("target") and UnitIsUnit(self.unit, "target") ) then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
-				--if not SteakInspectUnitGUID and not UnitInGroup("target") then
-				if not SteakInspectUnitGUID then
-					--SteakInspectUnitGUID = UnitGUID(self.unit)
+				if not IsAddOnLoaded("GearScore") then	
 					NotifyInspect(self.unit)
 				end
 			end
@@ -665,9 +788,7 @@ local function Steak_OnEvent(self, event, ...)
 	elseif event == "UNIT_TARGET" then
 		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and UnitExists(...) and UnitIsUnit(self.unit, ...) then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
-				--if not SteakInspectUnitGUID and not UnitInGroup(...) then
-				if not SteakInspectUnitGUID then
-					--SteakInspectUnitGUID = UnitGUID(self.unit)
+				if not IsAddOnLoaded("GearScore") then	
 					NotifyInspect(self.unit)
 				end
 			end
@@ -675,9 +796,7 @@ local function Steak_OnEvent(self, event, ...)
 	elseif event == "PLAYER_FOCUS_CHANGED" then
 		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and UnitExists("focus") and UnitIsUnit(self.unit, "focus") then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
-				--if not SteakInspectUnitGUID and not UnitInGroup("focus") then
-				if not SteakInspectUnitGUID then
-					--SteakInspectUnitGUID = UnitGUID(self.unit)
+				if not IsAddOnLoaded("GearScore") then	
 					NotifyInspect(self.unit)
 				end
 			end
@@ -723,18 +842,6 @@ local function Steak_OnEvent(self, event, ...)
 	if event == "PLAYER_ROLES_ASSIGNED" then
 		if UnitExists(self.unit) and UnitExists(...) and UnitIsUnit(self.unit, ...) then
 			Steak_UpdateRole(self)
-		end
-	elseif event == "INSPECT_TALENT_READY" then
-		if SteakInspectUnitGUID and UnitGUID(self.unit) == SteakInspectUnitGUID then
-			local spec = Steak_GetSpec(self)
-			Steak_UpdateRole(self)
-			
-			if spec then
-				self.specText:SetText(spec:sub(1, 5))
-				SteakInspectUnitGUID = nil
-			else
-				self.specText:SetText("")
-			end
 		end
 	elseif event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" then
 		if UnitExists(self.unit) then
@@ -795,12 +902,17 @@ local function Steak_OnEvent(self, event, ...)
 			Steak_UpdateGS(self)
 			Steak_UpdateRole(self)
 			UpdateRoleIcons(self)
-			--Steak_GetSpec(self)
-			if not SteakSpecs[UnitGUID(self.unit)] and not SteakInspectUnitGUID then
-				NotifyInspect(self.unit)
+
+			--[[
+			if SteakSpecs and SteakSpecs[UnitGUID(self.unit)] then
+				self.specText:SetText(SteakSpecs[UnitGUID(self.unit)])
+			else
+				self.specText:SetText("")
 			end
-			if SteakSpecs[UnitGUID(self.unit)] then
-				self.specText:SetText(SteakSpecs[UnitGUID(self.unit)]:sub(1, 5))
+			]]
+
+			if not IsAddOnLoaded("GearScore") then
+				NotifyInspect(self.unit)
 			end
 
 			local index = tonumber(self.unit:match("^raid(%d+)$"))
@@ -814,6 +926,17 @@ local function Steak_OnEvent(self, event, ...)
 		end
 	--end
 
+	if event == "COMBAT_LOG_EVENT_UNFILTERED" then
+		local _, subEvent, srcGUID, _, _, _, _, _, spellID, spellName = ...
+
+		if srcGUID and SteakRoleSpecificSpells[spellID] then
+			SteakSpecs[srcGUID] = SteakRoleSpecificSpells[spellID]
+		elseif srcGUID and SteakRoleSpecificSpells[spellName] then
+			SteakSpecs[srcGUID] = SteakRoleSpecificSpells[spellName]
+		end
+	end
+
+	--[[
 	if self.unit == "player" and ( event == "PLAYER_ENTERING_WORLD" or event == "UPDATE_INVENTORY_DURABILITY" ) then
 		if not InCombatLockdown() then
 			local w, h = DurabilityFrame:GetSize()
@@ -825,6 +948,7 @@ local function Steak_OnEvent(self, event, ...)
 			DurabilityFrame:SetPoint("TOPLEFT", self, "TOPRIGHT", 5, 0)
 		end
 	end
+	]]
 end
 
 local function CreateSteakUnitFrame(name, unit, width, height, parent)
@@ -971,7 +1095,7 @@ local function CreateSteakUnitFrame(name, unit, width, height, parent)
 	
 	local roleText = health:CreateFontString(nil, "OVERLAY")
 	roleText:SetFont("Interface\\AddOns\\SteakFrames\\Audiowide-Regular.ttf", 8, "OUTLINE")
-	roleText:SetPoint("LEFT", frame.roleIcon, "RIGHT", 0, 0)
+	roleText:SetPoint("TOPLEFT", frame.roleIcon, "TOPRIGHT", 0, 0)
 	roleText:SetTextColor(1, 1, 1)
 	frame.roleText = roleText
 
@@ -1041,10 +1165,12 @@ local function CreateSteakUnitFrame(name, unit, width, height, parent)
 		GameTooltip:Hide()
 	end)
 
+	--[[
 	frame:HookScript("OnShow", function(self)
 		self.specText:SetText("")
 		self.roleIcon:Hide()
 	end)
+	]]
 
 	RegisterUnitWatch(frame)
 
@@ -1060,7 +1186,14 @@ local SteakFocus = CreateSteakUnitFrame("SteakFocusFrame", "focus", 140, 50)
 for i=1,4 do
 	local boss = CreateSteakUnitFrame("SteakBoss"..i.."Frame", "boss"..i, 110, 40)
 	
-	boss:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -250, 400+(80*(i-1)))
+	boss:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -350, 450+(80*(i-1)))
+end
+
+for i=1,3 do
+	local vehiclePassenger = CreateSteakUnitFrame("SteakPassenger"..i, "vehiclepassenger"..i, 90, 40)
+
+	vehiclePassenger:ClearAllPoints()
+	vehiclePassenger:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 350, 450+(80*(i-1)))
 end
 
 local raidParent = CreateFrame("Frame", "SteakRaidHeader", UIParent, "SecureHandlerStateTemplate")
@@ -1074,9 +1207,23 @@ for i=1,10 do
 	if i == 1 then
 		raidFrame:SetPoint("BOTTOMLEFT", raidParent, "BOTTOMLEFT", 0, 0)
 	elseif i == 6 then
-		raidFrame:SetPoint("BOTTOM", SteakRaid1, "TOP", 0, 4)
+		raidFrame:SetPoint("BOTTOM", SteakRaid1, "TOP", 0, 12)
 	else
 		raidFrame:SetPoint("LEFT", _G["SteakRaid"..(i-1)], "RIGHT", 4, 0)
+	end
+end
+
+--for i=11,40 do
+for i=11,25 do
+	local raidFrame = CreateSteakUnitFrame("SteakRaid"..i, "raid"..i, 90, 40, raidParent)
+
+	if i == 11 then
+		raidFrame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -1, 250)
+	--elseif i % 4 == 1 then
+	elseif i == 15 or i == 19 or i == 23 then
+		raidFrame:SetPoint("BOTTOM", _G["SteakRaid"..(i-4)], "TOP", 0, 6)
+	else
+		raidFrame:SetPoint("RIGHT", _G["SteakRaid"..(i-1)], "LEFT", -4, 0)
 	end
 end
 
