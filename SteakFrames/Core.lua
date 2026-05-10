@@ -289,7 +289,8 @@ local SteakUnitEvents = {
 	"UPDATE_EXHAUSTION",
 	--"UPDATE_INVENTORY_DURABILITY",
 	"VARIABLES_LOADED",
-	"COMBAT_LOG_EVENT_UNFILTERED"
+	"COMBAT_LOG_EVENT_UNFILTERED",
+	"UPDATE_SHAPESHIFT_FORM"
 }
 
 local function UnitInGroup(unit)
@@ -412,10 +413,11 @@ local function Steak_UpdateRole(self)
 
 	local role = UnitGroupRolesAssigned(self.unit)
 	local guid = UnitGUID(self.unit)
-	local spec = guid and SteakSpecs[guid]
+	--local spec = guid and SteakSpecs[guid]
 	--local talents = guid and SteakTalents[guid]
 	--local spec = self.spec
 
+	--[[
 	if role == "NONE" or not role or role == "" then
 		if spec then
 			if select(2, UnitClass(self.unit)) == "DRUID" and spec == "Feral Combat" then
@@ -432,10 +434,11 @@ local function Steak_UpdateRole(self)
 			end
 		end
 	end
+	]]
 
---local tankIcon = "|TInterface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES.blp:16:16:0:%d:64:64:0:19:22:41|t";
---local healerIcon = "|TInterface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES.blp:16:16:0:%d:64:64:20:39:1:20|t";
---local damageIcon = "|TInterface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES.blp:16:16:0:%d:64:64:20:39:22:41|t";
+	--local tankIcon = "|TInterface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES.blp:16:16:0:%d:64:64:0:19:22:41|t";
+	--local healerIcon = "|TInterface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES.blp:16:16:0:%d:64:64:20:39:1:20|t";
+	--local damageIcon = "|TInterface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES.blp:16:16:0:%d:64:64:20:39:22:41|t";
 	--self.roleIcon:SetTexture("Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES")
 
 	if role == "TANK" then
@@ -493,6 +496,20 @@ local function Steak_UpdatePower(self)
 	local pColor = pType and PowerBarColor[pType] or { r = 0, g = 0, b = 1 }
 	self.mana:SetStatusBarColor(pColor.r, pColor.g, pColor.b)
 	self.mpText:SetText(power.." / "..powerMax)
+
+	if self.unit == "player" and select(2, UnitClass("player")) == "DRUID" then
+		local form = GetShapeshiftForm()
+
+		if form == 1 or form == 3 then
+			local mana = UnitPower("player", SPELL_POWER_MANA)
+			local manaMax = UnitPowerMax("player", SPELL_POWER_MANA)
+			local manaColor = PowerBarColor["MANA"] or { r = 0, g = 0, b = 1 }
+
+			self.druidMana:SetStatusBarColor(manaColor.r, manaColor.g, manaColor.b)
+			self.druidMana:SetValue((mana / manaMax) * 100)
+			self.druidManaText:SetText(mana.." / "..manaMax)
+		end
+	end
 end
 
 local function Steak_UpdateHealth(self)
@@ -855,6 +872,16 @@ local function Steak_OnEvent(self, event, ...)
 		if UnitExists(self.unit) then
 			UpdateRoleIcons(self)
 		end
+	elseif event == "UPDATE_SHAPESHIFT_FORM" then
+		if self.unit == "player" and select(2, UnitClass("player")) == "DRUID" then
+			local form = GetShapeshiftForm()
+
+			if form == 1 or form == 3 then
+				self.druidMana:Show()
+			else
+				self.druidMana:Hide()
+			end
+		end
 	elseif event == "UNIT_FLAGS" then
 		if UnitExists(self.unit) and UnitIsUnit(self.unit, ...) then
 			if UnitAffectingCombat(self.unit) then
@@ -1027,6 +1054,25 @@ local function CreateSteakUnitFrame(name, unit, width, height, parent)
 		xpText:SetFont("Interface\\AddOns\\SteakFrames\\Audiowide-Regular.ttf", 8, "OUTLINE")
 		xpText:SetTextColor(1, 1, 1)
 		frame.xpText = xpText
+
+		local druidMana = CreateFrame("StatusBar", nil, frame)
+		druidMana:SetPoint("TOPLEFT", xp, "BOTTOMLEFT", 0, -1)
+		druidMana:SetPoint("TOPRIGHT", xp, "BOTTOMRIGHT", 0, -1)
+		druidMana:SetHeight(12)
+		druidMana:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+		druidMana:SetMinMaxValues(0, 100)
+		frame.druidMana = druidMana
+
+		local druidManaText = druidMana:CreateFontString(nil, "OVERLAY")
+		druidManaText:SetFont("Interface\\AddOns\\SteakFrames\\Audiowide-Regular.ttf", 8, "OUTLINE")
+		druidManaText:SetPoint("RIGHT", druidMana, "RIGHT", -2, 0)
+		druidManaText:SetTextColor(1, 1, 1)
+		frame.druidManaText = druidManaText
+
+		local druidManabg = druidMana:CreateTexture(nil, "BACKGROUND")
+		druidManabg:SetAllPoints(druidMana)
+		druidManabg:SetTexture(0, 0, 0, 0.8)
+		druidMana.bg = druidManabg
 	end
 
 	local health = CreateFrame("StatusBar", nil, frame)

@@ -4,4 +4,5 @@
 ## Version: 1.0.0
 ## Author: SoonBeSteak
 ## OptionalDeps: GearScore
+## SavedVariables: SteakSpecs, SteakTalents
 Core.lua
