@@ -873,6 +873,7 @@ local function Steak_OnEvent(self, event, ...)
 			UpdateRoleIcons(self)
 		end
 	elseif event == "UPDATE_SHAPESHIFT_FORM" then
+		--[[
 		if self.unit == "player" and select(2, UnitClass("player")) == "DRUID" then
 			local form = GetShapeshiftForm()
 
@@ -882,6 +883,7 @@ local function Steak_OnEvent(self, event, ...)
 				self.druidMana:Hide()
 			end
 		end
+		]]
 	elseif event == "UNIT_FLAGS" then
 		if UnitExists(self.unit) and UnitIsUnit(self.unit, ...) then
 			if UnitAffectingCombat(self.unit) then
@@ -1055,7 +1057,7 @@ local function CreateSteakUnitFrame(name, unit, width, height, parent)
 		xpText:SetTextColor(1, 1, 1)
 		frame.xpText = xpText
 
-		local druidMana = CreateFrame("StatusBar", nil, frame)
+		local druidMana = CreateFrame("StatusBar", nil, frame, "SecureHandlerStateTemplate")
 		druidMana:SetPoint("TOPLEFT", xp, "BOTTOMLEFT", 0, -1)
 		druidMana:SetPoint("TOPRIGHT", xp, "BOTTOMRIGHT", 0, -1)
 		druidMana:SetHeight(12)
@@ -1073,6 +1075,10 @@ local function CreateSteakUnitFrame(name, unit, width, height, parent)
 		druidManabg:SetAllPoints(druidMana)
 		druidManabg:SetTexture(0, 0, 0, 0.8)
 		druidMana.bg = druidManabg
+
+		if select(2, UnitClass("player")) == "DRUID" then
+			RegisterStateDriver(druidMana, "visibility", "[form:1][form:3] show; hide")
+		end
 	end
 
 	local health = CreateFrame("StatusBar", nil, frame)
