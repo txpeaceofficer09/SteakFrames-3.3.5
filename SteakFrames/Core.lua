@@ -1078,6 +1078,8 @@ local function CreateSteakUnitFrame(name, unit, width, height, parent)
 
 		if select(2, UnitClass("player")) == "DRUID" then
 			RegisterStateDriver(druidMana, "visibility", "[form:1][form:3] show; hide")
+		else
+			RegisterStateDriver(druidMana, "visibility", "hide")
 		end
 	end
 
