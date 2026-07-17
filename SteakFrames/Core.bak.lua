@@ -5,175 +5,180 @@ local GearScores = {}
 local SteakAuras = {}
 
 local SteakRoleSpecificSpells = {
-        -- BLOOD
-        [45902] = "Blood",        -- Blood Strike
-        [55262] = "Blood",        -- Heart Strike
-        [48982] = "Blood",        -- Rune Tap
-        [49005] = "Blood",        -- Mark of Blood
-        [48721] = "Blood",        -- Blood Boil
-        [48266] = "Blood",        -- Blood Presence
+	-- BLOOD
+	[45902] = "Blood",        -- Blood Strike
+	[55262] = "Blood",        -- Heart Strike
+	[48982] = "Blood",        -- Rune Tap
+	[49005] = "Blood",        -- Mark of Blood
+	[48721] = "Blood",        -- Blood Boil
+	[48266] = "Blood",        -- Blood Presence
 
-        -- FROST
-        [49143] = "Frost",        -- Frost Strike
-        [49184] = "Frost",        -- Howling Blast
-        [51271] = "Frost",        -- Unbreakable Armor
-        [48263] = "Frost",        -- Frost Presence
+	-- FROST
+	[49143] = "Frost",        -- Frost Strike
+	[49184] = "Frost",        -- Howling Blast
+	[51271] = "Frost",        -- Unbreakable Armor
+	[48263] = "Frost",        -- Frost Presence
 
-        -- UNHOLY
-        [55090] = "Unholy",       -- Scourge Strike
-        [49206] = "Unholy",       -- Summon Gargoyle
-        [49222] = "Unholy",       -- Bone Shield
-        [48265] = "Unholy",       -- Unholy Presence
+	-- UNHOLY
+	[55090] = "Unholy",       -- Scourge Strike
+	[49206] = "Unholy",       -- Summon Gargoyle
+	[49222] = "Unholy",       -- Bone Shield
+	[48265] = "Unholy",       -- Unholy Presence
 
-        -- BALANCE
-        [24858] = "Balance",      -- Moonkin Form
-        [33831] = "Balance",      -- Force of Nature
-        [61384] = "Balance",      -- Typhoon
-        [48505] = "Balance",      -- Starfall
+	-- BALANCE
+	[24858] = "Balance",      -- Moonkin Form
+	[33831] = "Balance",      -- Force of Nature
+	[61384] = "Balance",      -- Typhoon
+	[48505] = "Balance",      -- Starfall
 
-        -- FERAL
-        [48566] = "Feral",        -- Mangle (Cat)
-        [48564] = "Feral",        -- Mangle (Bear)
-        [50334] = "Feral",        -- Berserk
-        [61336] = "Feral",        -- Survival Instincts
+	-- FERAL
+	[48566] = "Feral",        -- Mangle (Cat)
+	[48564] = "Feral",        -- Mangle (Bear)
+	[50334] = "Feral",        -- Berserk
+	[61336] = "Feral",        -- Survival Instincts
 
-        -- RESTORATION
-        [48438] = "Restoration",  -- Wild Growth
-        [33891] = "Restoration",  -- Tree of Life
-        [18562] = "Restoration",  -- Swiftmend
-        [50464] = "Restoration",  -- Nourish
+	-- RESTORATION
+	[48438] = "Restoration",  -- Wild Growth
+	[33891] = "Restoration",  -- Tree of Life
+	[18562] = "Restoration",  -- Swiftmend
+	[50464] = "Restoration",  -- Nourish
 
-        -- BEAST MASTERY
-        [19574] = "BeastMastery", -- Bestial Wrath
-        [34026] = "BeastMastery", -- Kill Command
-        [34490] = "Marksmanship", -- Silencing Shot
+	-- BEAST MASTERY
+	[19574] = "BeastMastery", -- Bestial Wrath
+	[34026] = "BeastMastery", -- Kill Command
+	[19577] = "BeastMastery", -- Intimidation
 
-        -- SURVIVAL
-        [60053] = "Survival",     -- Explosive Shot
-        [3674]  = "Survival",     -- Black Arrow
-        [19386] = "Survival",     -- Wyvern Sting
+	-- MARKSMANSHIP
+	[49050] = "Marksmanship", -- Aimed Shot
+	[53209] = "Marksmanship", -- Chimera Shot
+	[34490] = "Marksmanship", -- Silencing Shot
 
-        -- ARCANE
-        [44425] = "Arcane",       -- Arcane Barrage
-        [42897] = "Arcane",       -- Arcane Blast
-        [66]    = "Arcane",       -- Invisibility
-        [31589] = "Arcane",       -- Slow
+	-- SURVIVAL
+	[60053] = "Survival",     -- Explosive Shot
+	[3674]  = "Survival",     -- Black Arrow
+	[19386] = "Survival",     -- Wyvern Sting
 
-        -- FIRE
-        [31661] = "Fire",         -- Dragon's Breath
-        [42945] = "Fire",         -- Blast Wave
-        [11129] = "Fire",         -- Combustion
-        [55360] = "Fire",         -- Living Bomb
+	-- ARCANE
+	[44425] = "Arcane",       -- Arcane Barrage
+	[42897] = "Arcane",       -- Arcane Blast
+	[66]    = "Arcane",       -- Invisibility
+	[31589] = "Arcane",       -- Slow
 
-        -- FROST
-        [31687] = "Frost",        -- Summon Water Elemental
-        [44572] = "Frost",        -- Deep Freeze
-        [43039] = "Frost",        -- Ice Barrier
-        [47610] = "Frost",        -- Frostfire Bolt (Frost-only spellbook)
+	-- FIRE
+	[31661] = "Fire",         -- Dragon's Breath
+	[42945] = "Fire",         -- Blast Wave
+	[11129] = "Fire",         -- Combustion
+	[55360] = "Fire",         -- Living Bomb
 
-        -- HOLY
-        [20473] = "Holy",         -- Holy Shock
-        [53563] = "Holy",         -- Beacon of Light
-        [53601] = "Holy",         -- Sacred Shield
+	-- FROST
+	[31687] = "Frost",        -- Summon Water Elemental
+	[44572] = "Frost",        -- Deep Freeze
+	[43039] = "Frost",        -- Ice Barrier
+	[47610] = "Frost",        -- Frostfire Bolt (Frost-only spellbook)
 
-        -- PROTECTION
-        [53595] = "Protection",   -- Hammer of the Righteous
-        [53600] = "Protection",   -- Shield of Righteousness
-        [64205] = "Protection",   -- Divine Sacrifice
+	-- HOLY
+	[20473] = "Holy",         -- Holy Shock
+	[53563] = "Holy",         -- Beacon of Light
+	[53601] = "Holy",         -- Sacred Shield
 
-        -- RETRIBUTION
-        [35395] = "Retribution",  -- Crusader Strike
-        [53385] = "Retribution",  -- Divine Storm
-        [20066] = "Retribution",  -- Repentance
+	-- PROTECTION
+	[53595] = "Protection",   -- Hammer of the Righteous
+	[53600] = "Protection",   -- Shield of Righteousness
+	[64205] = "Protection",   -- Divine Sacrifice
 
-        -- DISCIPLINE
-        [47540] = "Discipline",   -- Penance
-        [10060] = "Discipline",   -- Power Infusion
-        [33206] = "Discipline",   -- Pain Suppression
+	-- RETRIBUTION
+	[35395] = "Retribution",  -- Crusader Strike
+	[53385] = "Retribution",  -- Divine Storm
+	[20066] = "Retribution",  -- Repentance
 
-        -- HOLY
-        [34861] = "Holy",         -- Circle of Healing
-        [47788] = "Holy",         -- Guardian Spirit
-        [724]   = "Holy",         -- Lightwell
+	-- DISCIPLINE
+	[47540] = "Discipline",   -- Penance
+	[10060] = "Discipline",   -- Power Infusion
+	[33206] = "Discipline",   -- Pain Suppression
 
-        -- SHADOW
-        [34914] = "Shadow",       -- Vampiric Touch
-        [15473] = "Shadow",       -- Shadowform
-        [48300] = "Shadow",       -- Devouring Plague (universal in WotLK)
+	-- HOLY
+	[34861] = "Holy",         -- Circle of Healing
+	[47788] = "Holy",         -- Guardian Spirit
+	[724]   = "Holy",         -- Lightwell
 
-        -- ASSASSINATION
-        [1329]  = "Assassination", -- Mutilate
-        [32645] = "Assassination", -- Envenom
-        [51662] = "Assassination", -- Hunger for Blood
+	-- SHADOW
+	[34914] = "Shadow",       -- Vampiric Touch
+	[15473] = "Shadow",       -- Shadowform
+	[48300] = "Shadow",       -- Devouring Plague (universal in WotLK)
 
-        -- COMBAT
-        [51690] = "Combat",        -- Killing Spree
-        [13750] = "Combat",        -- Adrenaline Rush
-        [13877] = "Combat",        -- Blade Flurry
+	-- ASSASSINATION
+	[1329]  = "Assassination", -- Mutilate
+	[32645] = "Assassination", -- Envenom
+	[51662] = "Assassination", -- Hunger for Blood
 
-        -- SUBTLETY
-        [36554] = "Subtlety",      -- Shadowstep
-        [16511] = "Subtlety",      -- Hemorrhage
-        [14185] = "Subtlety",      -- Preparation
+	-- COMBAT
+	[51690] = "Combat",        -- Killing Spree
+	[13750] = "Combat",        -- Adrenaline Rush
+	[13877] = "Combat",        -- Blade Flurry
 
-        -- ELEMENTAL
-        [51490] = "Elemental",     -- Thunderstorm
-        [16166] = "Elemental",     -- Elemental Mastery
-        [60043] = "Elemental",     -- Lava Burst
+	-- SUBTLETY
+	[36554] = "Subtlety",      -- Shadowstep
+	[16511] = "Subtlety",      -- Hemorrhage
+	[14185] = "Subtlety",      -- Preparation
 
-        -- ENHANCEMENT
-        [51533] = "Enhancement",   -- Feral Spirit
-        [30823] = "Enhancement",   -- Shamanistic Rage
-        [60103] = "Enhancement",   -- Lava Lash
+	-- ELEMENTAL
+	[51490] = "Elemental",     -- Thunderstorm
+	[16166] = "Elemental",     -- Elemental Mastery
+	[60043] = "Elemental",     -- Lava Burst
 
-        -- RESTORATION
-        [61295] = "Restoration",   -- Riptide
-        [974]   = "Restoration",   -- Earth Shield
-        [55198] = "Restoration",   -- Tidal Force
+	-- ENHANCEMENT
+	[51533] = "Enhancement",   -- Feral Spirit
+	[30823] = "Enhancement",   -- Shamanistic Rage
+	[60103] = "Enhancement",   -- Lava Lash
 
-        -- AFFLICTION
-        [30108] = "Affliction",    -- Unstable Affliction
-        [48181] = "Affliction",    -- Haunt
-        [63108] = "Affliction",    -- Siphon Life (baseline in WotLK)
+	-- RESTORATION
+	[61295] = "Restoration",   -- Riptide
+	[974]   = "Restoration",   -- Earth Shield
+	[55198] = "Restoration",   -- Tidal Force
 
-        -- DEMONOLOGY
-        [59672] = "Demonology",    -- Metamorphosis
-        [47193] = "Demonology",    -- Demonic Empowerment
-        [30146] = "Demonology",    -- Summon Felguard
+	-- AFFLICTION
+	[30108] = "Affliction",    -- Unstable Affliction
+	[48181] = "Affliction",    -- Haunt
+	[63108] = "Affliction",    -- Siphon Life (baseline in WotLK)
 
-        -- DESTRUCTION
-        [50796] = "Destruction",   -- Chaos Bolt
-        [30283] = "Destruction",   -- Shadowfury
-        [17962] = "Destruction",   -- Conflagrate
+	-- DEMONOLOGY
+	[59672] = "Demonology",    -- Metamorphosis
+	[47193] = "Demonology",    -- Demonic Empowerment
+	[30146] = "Demonology",    -- Summon Felguard
 
-        -- ARMS
-        [12294] = "Arms",          -- Mortal Strike
-        [46924] = "Arms",          -- Bladestorm
-        [12328] = "Arms",          -- Sweeping Strikes
+	-- DESTRUCTION
+	[50796] = "Destruction",   -- Chaos Bolt
+	[30283] = "Destruction",   -- Shadowfury
+	[17962] = "Destruction",   -- Conflagrate
 
-        -- FURY
-        [23881] = "Fury",          -- Bloodthirst
-        [46917] = "Fury",          -- Titan's Grip (passive but spec-unique)
-        [29801] = "Fury",          -- Rampage
+	-- ARMS
+	[12294] = "Arms",          -- Mortal Strike
+	[46924] = "Arms",          -- Bladestorm
+	[12328] = "Arms",          -- Sweeping Strikes
 
-        -- PROTECTION
-        [23922] = "Protection",    -- Shield Slam
-        [46968] = "Protection",    -- Shockwave
-        [50227] = "Protection",    -- Sword and Board
+	-- FURY
+	[23881] = "Fury",          -- Bloodthirst
+	[46917] = "Fury",          -- Titan's Grip (passive but spec-unique)
+	[29801] = "Fury",          -- Rampage
+
+	-- PROTECTION
+	[23922] = "Protection",    -- Shield Slam
+	[46968] = "Protection",    -- Shockwave
+	[50227] = "Protection",    -- Sword and Board
 }
 
 local DebuffTypeIcons = {
-	Magic = "Interface\\Icons\\Spell_Holy_DispelMagic",
-	Curse = "Interface\\Icons\\Spell_Shadow_CurseOfTounges",
+	Magic   = "Interface\\Icons\\Spell_Holy_DispelMagic",
+	Curse   = "Interface\\Icons\\Spell_Shadow_CurseOfTounges",
 	Disease = "Interface\\Icons\\Spell_Nature_NullifyDisease",
-	Poison= "Interface\\Icons\\Spell_Nature_NullifyPoison",
+	Poison  = "Interface\\Icons\\Spell_Nature_NullifyPoison",
 }
 
 local DebuffColors = {
-	Magic = {0.20, 0.60, 1.00, 0.40},-- blue
-	Curse = {0.60, 0.00, 1.00, 0.40},-- purple
-	Disease = {0.60, 0.40, 0.00, 0.40},-- brown
-	Poison = {0.00, 0.60, 0.00, 0.40},-- green
+	Magic = {0.20, 0.60, 1.00, 0.40},  -- blue
+	Curse = {0.60, 0.00, 1.00, 0.40},  -- purple
+	Disease = {0.60, 0.40, 0.00, 0.40},  -- brown
+	Poison = {0.00, 0.60, 0.00, 0.40},  -- green
 }
 
 local CanDispel = {}
@@ -251,7 +256,6 @@ local SteakUnitEvents = {
 	"GROUP_ROSTER_UPDATE",
 	"PARTY_MEMBERS_CHANGED",
 	"RAID_ROSTER_UPDATE",
-	"PLAYER_ROLES_ASSIGNED",
 	"UNIT_HEALTH",
 	"UNIT_MAXHEALTH",
 	"UNIT_POWER_UPDATE",
@@ -265,14 +269,14 @@ local SteakUnitEvents = {
 	"UNIT_MAXRUNIC_POWER",
 	"UNIT_DISPLAYPOWER",
 	"UNIT_MAXPOWER",
-	--"UNIT_FACTION",
+	"UNIT_FACTION",
 	"UNIT_THREAT_SITUATION_UPDATE",
 	"UNIT_THREAT_LIST_UPDATE",
-	--"UNIT_AURA",
+	"UNIT_AURA",
 	"UNIT_PET",
-	--"UNIT_HAPPINESS",
+	"UNIT_HAPPINESS",
 	"UNIT_FLAGS",
-	--"RAID_TARGET_UPDATE",
+	"RAID_TARGET_UPDATE",
 	"PLAYER_PET_CHANGED",
 	"PLAYER_TARGET_CHANGED",
 	"UNIT_TARGET",
@@ -285,8 +289,8 @@ local SteakUnitEvents = {
 	"UPDATE_EXHAUSTION",
 	--"UPDATE_INVENTORY_DURABILITY",
 	"VARIABLES_LOADED",
-	--"COMBAT_LOG_EVENT_UNFILTERED",
-	--"UPDATE_SHAPESHIFT_FORM"
+	"COMBAT_LOG_EVENT_UNFILTERED",
+	"UPDATE_SHAPESHIFT_FORM"
 }
 
 local function UnitInGroup(unit)
@@ -401,7 +405,7 @@ local function CreateAuraIcon(parent)
 		GameTooltip:Hide()
 	end)
 
-	return f
+    return f
 end
 
 local function Steak_UpdateRole(self)
@@ -409,23 +413,28 @@ local function Steak_UpdateRole(self)
 
 	local role = UnitGroupRolesAssigned(self.unit)
 	local guid = UnitGUID(self.unit)
+	--local spec = guid and SteakSpecs[guid]
+	--local talents = guid and SteakTalents[guid]
+	--local spec = self.spec
 
-        if role == "NONE" or not role or role == "" then
-                if spec then
-                        if select(2, UnitClass(self.unit)) == "DRUID" and spec == "Feral Combat" then
-                                local _, _, _, _, tankPoints = GetTalentInfo(2, 26, true)
-                                local _, _, _, _, thickHidePoints = GetTalentInfo(2, 4, true)
-
-                                if thickHidePoints > 0 or tankPoints > 0 then
-                                        role = "TANK"
-                                else
-                                        role = "DAMAGER"
-                                end
-                        else
-                                role = SteakSpecRoles[spec]
-                        end
-                end
-        end
+	--[[
+	if role == "NONE" or not role or role == "" then
+		if spec then
+			if select(2, UnitClass(self.unit)) == "DRUID" and spec == "Feral Combat" then
+				local _, _, _, _, tankPoints = GetTalentInfo(2, 26, true)
+				local _, _, _, _, thickHidePoints = GetTalentInfo(2, 4, true)
+				
+				if thickHidePoints > 0 or tankPoints > 0 then
+					role = "TANK"
+				else
+					role = "DAMAGER"
+				end
+			else
+				role = SteakSpecRoles[spec]
+			end
+		end
+	end
+	]]
 
 	--local tankIcon = "|TInterface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES.blp:16:16:0:%d:64:64:0:19:22:41|t";
 	--local healerIcon = "|TInterface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES.blp:16:16:0:%d:64:64:20:39:1:20|t";
@@ -508,11 +517,9 @@ local function Steak_UpdateHealth(self)
 	local hpMax = UnitHealthMax(self.unit) or 1
 	local class = select(2, UnitClass(self.unit)) or ""
 	local color = class and RAID_CLASS_COLORS[class] or { r = 0, g = 1, b = 0 }
-	local isConnected = UnitIsConnected(self.unit)
-	local isDead = UnitIsDeadOrGhost(self.unit)
 
-	self.health:SetValue((isDead and 0 or hp / hpMax) * 100)
-	self.health:SetStatusBarColor(isConnected and color.r or 0.5, isConnected and color.g or 0.5, isConnected and color.b or 0.5)
+	self.health:SetValue((hp / hpMax) * 100)
+	self.health:SetStatusBarColor(color.r, color.g, color.b)
 	self.hpText:SetText(hp.." / "..hpMax)
 end
 
@@ -585,7 +592,6 @@ local function UpdateRoleIcons(self)
 	self.roleText:SetText(roleText)
 end
 
---[[
 local function Steak_UnitAura(self)
 	if UnitIsFriend("player", self.unit) then
 		local foundType = nil
@@ -620,56 +626,7 @@ local function Steak_UnitAura(self)
 		end
 	end
 end
-]]
 
-local function Steak_UnitAura(self)
-	if not UnitExists(self.unit) then
-		self.debuff:SetTexture(0, 0, 0, 0)
-		return
-	end
-
-	if UnitIsFriend("player", self.unit) then
-		local foundType
-		for i = 1, 40 do
-			local _, _, _, _, debuffType = UnitDebuff(self.unit, i)
-			if not debuffType and not UnitDebuff(self.unit, i) then
-				break
-			end
-			if debuffType and CanDispel[debuffType] then
-				foundType = debuffType
-				break
-			end
-		end
-
-		if foundType then
-			local r, g, b, a = unpack(DebuffColors[foundType])
-			self.debuff:SetTexture(r, g, b, a)
-		else
-			self.debuff:SetTexture(0, 0, 0, 0)
-		end
-	else
-		local hasStealable = false
-		for i = 1, 40 do
-			local _, _, _, _, _, _, _, _, _, _, stealable = UnitBuff(self.unit, i)
-			if not stealable and not UnitBuff(self.unit, i) then
-				break
-			end
-			if stealable then
-				hasStealable = true
-				break
-			end
-		end
-
-		if hasStealable then
-			local r, g, b, a = unpack(DebuffColors.Magic)
-			self.debuff:SetTexture(r, g, b, a)
-		else
-			self.debuff:SetTexture(0, 0, 0, 0)
-		end
-	end
-end
-
---[[
 local function Steak_UpdateDebuffs(self)
 	local unit = self.unit
 	if not UnitExists(unit) then return end
@@ -700,7 +657,6 @@ local function Steak_UpdateDebuffs(self)
 		texture:Show()
 	end
 end
-]]
 
 --[[
 local function UpdateAuras(frame)
@@ -819,10 +775,6 @@ local function Steak_UpdateGS(self)
 end
 
 local function Steak_OnUpdate(self, elapsed)
-	self.timer = (self.timer or 0) + elapsed
-	if self.timer < 0.2 then return end
-	self.timer = 0
-
 	if UnitIsUnit(self.unit, "player") then
 		self:SetAlpha(1)
 		return
@@ -837,105 +789,80 @@ local function Steak_OnUpdate(self, elapsed)
 	end
 end
 
-local function Steak_UpdateAll(self)
-	Steak_UpdateHealth(self)
-	Steak_UpdatePower(self)
-	Steak_UpdateName(self)
-	Steak_UpdateRaidIcon(self)
-	Steak_UpdatePvPIcon(self)
-	Steak_UpdateThreat(self)
-	Steak_UpdateGS(self)
-	Steak_UpdateRole(self)
-	UpdateRoleIcons(self)
-end
-
-local function Steak_UpdateGroup(self)
-	local index = tonumber(self.unit:match("^raid(%d+)$"))
-
-	if index then
-		local subgroup = select(3, GetRaidRosterInfo(index))
-
-		Steak_UpdateAll(self)
-
-		self.groupText:SetText(subgroup)
-	else
-		self.groupText:SetText("")
-	end
-end
-
-local function Steak_UpdateXP(self)
-	if self.xp then
-		local curXP = UnitXP("player")
-		local maxXP = UnitXPMax("player")
-		local restXP = GetXPExhaustion() or 0
-
-		if maxXP <= 0 then
-			self.xpText:SetText("Max Level")
-			self.xp:SetValue(100)
-			return
-		end
-			
-		self.xp:SetMinMaxValues(0, maxXP)
-		self.xp:SetValue(curXP)
-
-		self.xpText:SetText(("%d%%"):format(math.floor((curXP / maxXP) * 100)))
-
-		if restXP > 0 then
-			self.xp:SetStatusBarColor(0, 0.4, 1, 1)
-
-			local totalRested = curXP + restXP
-			local restPct = totalRested / maxXP
-
-					if restPct > 1 then restPct = 1 end
-
-			self.xp.tick:ClearAllPoints()
-			self.xp.tick:SetPoint("CENTER", self.xp, "LEFT", restPct * self.xp:GetWidth(), 0)
-
-			self.xp.tick:Show()
-		else
-			self.xp:SetStatusBarColor(0.6, 0, 0.6, 1)
-			self.xp.tick:Hide()
-		end
-	end
-end
-
 local function Steak_OnEvent(self, event, ...)
-	if event == "UNIT_INVENTORY_CHANGED" then
-		if InCombatLockdown() then return end
-		if GetTime() - (self.lastInspect or 0) < 2 then return end
-
-		self.lastInspect = GetTime()
-
-		if UnitExists(self.unit) and UnitExists(...) and UnitIsUnit(self.unit, ...) and not UnitIsUnit(..., "player") then
+	if event == "VARIABLES_LOADED" then
+		SteakSpecs = SteakSpecs or {}
+	end
+	
+	if event == "PLAYER_TARGET_CHANGED" then
+		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and ( UnitExists("target") and UnitIsUnit(self.unit, "target") ) then
 			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
-				NotifyInspect(self.unit)
+				if not IsAddOnLoaded("GearScore") then	
+					NotifyInspect(self.unit)
+				end
 			end
 		end
-	elseif event == "PLAYER_XP_UPDATE" or event == "PLAYER_LEVEL_UP" or event == "UPDATE_EXHAUSTION" then
-		Steak_UpdateXP(self)
-		Steak_UpdateName(self)
-	elseif event == "PLAYER_ROLES_ASSIGNED" then
-		--print(event, ...)
-		--if UnitExists(self.unit) and UnitExists(...) and UnitIsUnit(self.unit, ...) then
-			Steak_UpdateRole(self)
-		--end
-	elseif event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" then
-		if UnitExists(self.unit) and UnitExists(...) and UnitIsUnit(self.unit, ...) then
-			Steak_UpdateHealth(self)
-		end
-	elseif event == "UNIT_MANA" or event == "UNIT_RAGE" or event == "UNIT_RUNIC_POWER" or event == "UNIT_ENERGY" or event == "UNIT_MAXMANA" or event == "UNIT_MAXRAGE" or event == "UNIT_MAXRUNIC_POWER" or event == "UNIT_MAXENERGY" or event == "UNIT_DISPLAYPOWER" then
-		if UnitExists(self.unit) and UnitExists(...) and UnitIsUnit(self.unit, ...) then
-			Steak_UpdatePower(self)
-		end
-	elseif event == "PLAYER_TARGET_CHANGED" then
-		if UnitExists(self.unit) and ( UnitIsUnit(self.unit, "target") or UnitIsUnit(self.unit, "targettarget") ) then
-			Steak_UpdateAll(self)
-		end
 	elseif event == "UNIT_TARGET" then
-		local target = ("%starget"):format(...)
+		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and UnitExists(...) and UnitIsUnit(self.unit, ...) then
+			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
+				if not IsAddOnLoaded("GearScore") then	
+					NotifyInspect(self.unit)
+				end
+			end
+		end
+	elseif event == "PLAYER_FOCUS_CHANGED" then
+		if UnitExists(self.unit) and UnitIsPlayer(self.unit) and UnitExists("focus") and UnitIsUnit(self.unit, "focus") then
+			if CanInspect(self.unit) and CheckInteractDistance(self.unit, 1) and not InCombatLockdown() then
+				if not IsAddOnLoaded("GearScore") then	
+					NotifyInspect(self.unit)
+				end
+			end
+		end
+	end
 
-		if UnitExists(target) and UnitExists(self.unit) and UnitIsUnit(self.unit, target) then
-			Steak_UpdateAll(self)
+	if event == "PLAYER_XP_UPDATE" or event == "PLAYER_LEVEL_UP" or event == "UPDATE_EXHAUSTION" or event == "PLAYER_ENTERING_WORLD" then
+		if self.xp then
+			local curXP = UnitXP("player")
+			local maxXP = UnitXPMax("player")
+			local restXP = GetXPExhaustion() or 0
+			
+			if maxXP <= 0 then
+				self.xpText:SetText("Max Level")
+				self.xp:SetValue(100)
+				return
+			end
+			
+			self.xp:SetMinMaxValues(0, maxXP)
+			self.xp:SetValue(curXP)
+			
+			self.xpText:SetText(("%d%%"):format(math.floor((curXP / maxXP) * 100)))
+			
+			if restXP > 0 then
+				self.xp:SetStatusBarColor(0, 0.4, 1, 1)
+				
+				local totalRested = curXP + restXP
+				local restPct = totalRested / maxXP
+
+				if restPct > 1 then restPct = 1 end
+
+				self.xp.tick:ClearAllPoints()
+				self.xp.tick:SetPoint("CENTER", self.xp, "LEFT", restPct * self.xp:GetWidth(), 0)
+				
+				self.xp.tick:Show()
+			else
+				self.xp:SetStatusBarColor(0.6, 0, 0.6, 1)
+				self.xp.tick:Hide()
+			end
+		end
+	end
+
+	if event == "PLAYER_ROLES_ASSIGNED" then
+		if UnitExists(self.unit) and UnitExists(...) and UnitIsUnit(self.unit, ...) then
+			Steak_UpdateRole(self)
+		end
+	elseif event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" then
+		if UnitExists(self.unit) then
+			Steak_UpdateHealth(self)
 		end
 	elseif event == "UNIT_THREAT_SITUATION_UPDATE" or event == "UNIT_THREAT_LIST_UPDATE" then
 		if UnitExists(self.unit) then
@@ -945,6 +872,18 @@ local function Steak_OnEvent(self, event, ...)
 		if UnitExists(self.unit) then
 			UpdateRoleIcons(self)
 		end
+	elseif event == "UPDATE_SHAPESHIFT_FORM" then
+		--[[
+		if self.unit == "player" and select(2, UnitClass("player")) == "DRUID" then
+			local form = GetShapeshiftForm()
+
+			if form == 1 or form == 3 then
+				self.druidMana:Show()
+			else
+				self.druidMana:Hide()
+			end
+		end
+		]]
 	elseif event == "UNIT_FLAGS" then
 		if UnitExists(self.unit) and UnitIsUnit(self.unit, ...) then
 			if UnitAffectingCombat(self.unit) then
@@ -954,19 +893,15 @@ local function Steak_OnEvent(self, event, ...)
 			end
 		end
 	elseif event == "UNIT_AURA" then
-		if self.unit == "player" or self.unit == "target" then
-			--if UnitExists(self.unit) then
-			--	Steak_UnitAura(self)
-			--end
+		if UnitExists(self.unit) then
+			Steak_UnitAura(self)
 		end
 	elseif event == "UNIT_COMBO_POINTS" then
 		if self.unit == "target" then
 			self.cp = self.cp or {}
 			local comboPoints = GetComboPoints("player", "target")
-
 			for i=1,5 do
 				local cp = self.cp[i]
-
 				if not cp then
 					cp = self:CreateTexture(nil, "OVERLAY")
 					cp:SetSize(26, 6)
@@ -984,37 +919,65 @@ local function Steak_OnEvent(self, event, ...)
 				end
 			end
 		end
-	elseif event == "PLAYER_ENTERING_WORLD" or event == "UNIT_PET" then
-		if UnitExists(self.unit) then
-			Steak_UpdateAll(self)
-		end
-	elseif event == "RAID_ROSTER_UPDATE" or event == "PARTY_MEMBERS_CHANGED" then
-		if UnitExists(self.unit) then
-			Steak_UpdateGroup(self)
-
-			if self.unit:match("^party") then
-				Steak_UpdateAll(self)
-			end
-		end
-	else
-		print(event, ...)
-		Steak_UpdateAll(self)
+	--else
 	end
-
-        if event == "COMBAT_LOG_EVENT_UNFILTERED" then
-                local _, subEvent, srcGUID, _, _, _, _, _, spellID, spellName = ...
-
-		if srcGUID == UnitGUID(self.unit) then
-	                if srcGUID and SteakRoleSpecificSpells[spellID] then
-        	                SteakSpecs[srcGUID] = SteakRoleSpecificSpells[spellID]
-        	        elseif srcGUID and SteakRoleSpecificSpells[spellName] then
-        	                SteakSpecs[srcGUID] = SteakRoleSpecificSpells[spellName]
-        	        end
-
+		if UnitExists(self.unit) then
+			Steak_UpdateHealth(self)
+			Steak_UpdatePower(self)
+			Steak_UpdateName(self)
+			Steak_UpdateRaidIcon(self)
+			Steak_UpdatePvPIcon(self)
+			Steak_UpdateThreat(self)
+			Steak_UpdateGS(self)
 			Steak_UpdateRole(self)
 			UpdateRoleIcons(self)
+
+			--[[
+			if SteakSpecs and SteakSpecs[UnitGUID(self.unit)] then
+				self.specText:SetText(SteakSpecs[UnitGUID(self.unit)])
+			else
+				self.specText:SetText("")
+			end
+			]]
+
+			if not IsAddOnLoaded("GearScore") then
+				NotifyInspect(self.unit)
+			end
+
+			local index = tonumber(self.unit:match("^raid(%d+)$"))
+			if index then
+				local subgroup = select(3, GetRaidRosterInfo(index))
+
+				self.groupText:SetText(subgroup)
+			else
+				self.groupText:SetText("")
+			end
 		end
-        end
+	--end
+
+	if event == "COMBAT_LOG_EVENT_UNFILTERED" then
+		local _, subEvent, srcGUID, _, _, _, _, _, spellID, spellName = ...
+
+		if srcGUID and SteakRoleSpecificSpells[spellID] then
+			SteakSpecs[srcGUID] = SteakRoleSpecificSpells[spellID]
+		elseif srcGUID and SteakRoleSpecificSpells[spellName] then
+			SteakSpecs[srcGUID] = SteakRoleSpecificSpells[spellName]
+		end
+	end
+
+	--[[
+	if self.unit == "player" and ( event == "PLAYER_ENTERING_WORLD" or event == "UPDATE_INVENTORY_DURABILITY" ) then
+		if not InCombatLockdown() then
+			local w, h = DurabilityFrame:GetSize()
+			local scale = SteakPlayerFrame:GetHeight() / h
+			DurabilityFrame:SetSize(w * scale, h * scale)
+			--DurabilityFrame:SetScale(SteakPlayerFrame:GetHeight() / DurabilityFrame:GetHeight())
+
+			DurabilityFrame:ClearAllPoints()
+			DurabilityFrame:SetPoint("TOPLEFT", self, "TOPRIGHT", 5, 0)
+		end
+	end
+	]]
 end
 
 local function CreateSteakUnitFrame(name, unit, width, height, parent)
@@ -1287,6 +1250,7 @@ for i=1,3 do
 	vehiclePassenger:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 350, 450+(80*(i-1)))
 end
 
+--[[
 local raidParent = CreateFrame("Frame", "SteakRaidHeader", UIParent, "SecureHandlerStateTemplate")
 raidParent:SetSize((110*5)+(4*4), 88)
 raidParent:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 150)
@@ -1316,6 +1280,7 @@ for i=11,25 do
 		raidFrame:SetPoint("RIGHT", _G["SteakRaid"..(i-1)], "LEFT", -4, 0)
 	end
 end
+]]
 
 local partyParent = CreateFrame("Frame", "SteakPartyHeader", UIParent, "SecureHandlerStateTemplate")
 partyParent:SetSize((140*4)+(4*3), 50)
@@ -1365,7 +1330,7 @@ targetBuffs:SetScript("OnEvent", function(self, event, unit)
 			
 			if not name then break end
 
-			if caster == "player" then		
+			if caster == "player" then			
 				local buff = self.buffs[index]
 			
 				if not buff then
@@ -1422,7 +1387,7 @@ targetBuffs:SetScript("OnEvent", function(self, event, unit)
 				end
 				buff:Show()
 
-				index = index + 1		 
+				index = index + 1			
 			end
 		end
 	end
@@ -1438,7 +1403,6 @@ h:SetScript("OnEvent", function()
 	local frames = {
 		PlayerFrame,
 		TargetFrame,
-		ComboFrame,
 		TargetFrameToT,
 		FocusFrame,
 		PetFrame,
