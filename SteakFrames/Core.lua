@@ -287,7 +287,32 @@ local SteakUnitEvents = {
 	"VARIABLES_LOADED",
 	--"COMBAT_LOG_EVENT_UNFILTERED",
 	--"UPDATE_SHAPESHIFT_FORM"
+	"UNIT_SPELLCAST_START",
+	"UNIT_SPELLCAST_STOP",
+	"UNIT_SPELLCAST_CHANNEL_START",
+	"UNIT_SPELLCAST_CHANNEL_STOP",
 }
+
+local function CreateSteakCastBar(parent, unit)
+	local bar = CreateFrame("StatusBar", nil, parent)
+
+	bar:SetSize(parent:GetWidth(), 14)
+	bar:SetPoint("TOP", parent, "BOTTOM", 0, -2)
+	bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+	bar:SetMinMaxValues(0, 1)
+	bar:Hide()
+
+	bar.bg = bar:CreateTexture(nil, "BACKGROUND")
+	bar.bg:SetAllPoints()
+	bar.bg:SetTexture("Interface\\Buttons\\WHITE8x8")
+	bar.bg:SetVertexColor(0, 0, 0, 0.6)
+
+	bar.text = bar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	bar.text:SetPoint("CENTER")
+
+	bar.unit = unit
+	return bar
+end
 
 local function UnitInGroup(unit)
 	if not UnitExists(unit) then return false end
@@ -900,7 +925,46 @@ local function Steak_UpdateXP(self)
 end
 
 local function Steak_OnEvent(self, event, ...)
-	if event == "UNIT_INVENTORY_CHANGED" then
+	if event == "UNIT_SPELLCAST_START" then
+		--local unit = ...
+		--if unit ~= "player" and unit ~= "target" then return end
+		if not self.castBar then return end
+
+		local name, _, _, _, startTime, endTime = UnitCastingInfo(...)
+
+		if name then
+			self.castBar.startTime = startTime / 1000
+			self.castBar.endTime = endTime / 1000
+			self.castBar.duration = self.castBar.endTime - self.castBar.startTime
+			self.castBar:SetMinMaxValues(0, self.castBar.duration)
+			self.castBar:SetValue(0)
+			self.castBar.text:SetText(name)
+			self.castBar:Show()
+		end
+	elseif event == "UNIT_SPELLCAST_CHANNEL_START" then
+		--local unit = ...
+		--if unit ~= "player" and unit ~= "target" then return end
+		if not self.castBar then return end
+
+		local name, _, _, _, startTime, endTime = UnitChannelInfo(...)
+
+		if name then
+			self.castBar.startTime = startTime / 1000
+			self.castBar.endTime = endTime / 1000
+			self.castBar:SetMinMaxValues(0, self.castBar.endTime - self.castBar.startTime)
+			self.castBar:SetValue(self.castBar.endTime - self.castBar.startTime)
+			self.castBar.text:SetText(name)
+			self.castBar.channeling = true
+			self.castBar:Show()
+		end
+	elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_CHANNEL_STOP" then
+		--local unit = ...
+		--if unit ~= "player" and unit ~= "target" then return end
+		if not self.castBar then return end
+
+		self.castBar:Hide()
+		self.castBar.channeling = nil
+	elseif event == "UNIT_INVENTORY_CHANGED" then
 		if InCombatLockdown() then return end
 		if GetTime() - (self.lastInspect or 0) < 2 then return end
 
@@ -1118,6 +1182,59 @@ local function CreateSteakUnitFrame(name, unit, width, height, parent)
 		else
 			RegisterStateDriver(druidMana, "visibility", "hide")
 		end
+	end
+
+	if unit == "player" or unit == "target" then
+		local bar = CreateFrame("StatusBar", nil, frame)
+
+		bar:SetSize(frame:GetWidth(), 14)
+		bar:SetPoint("TOP", frame, "BOTTOM", 0, -12)
+		bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+		bar:SetMinMaxValues(0, 1)
+		bar:Hide()
+
+		bar.bg = bar:CreateTexture(nil, "BACKGROUND")
+		bar.bg:SetAllPoints()
+		bar.bg:SetTexture("Interface\\Buttons\\WHITE8x8")
+		bar.bg:SetVertexColor(0, 0, 0, 0.6)
+
+		bar.text = bar:CreateFontString(nil, "OVERLAY")
+		bar.text:SetFont("Interface\\AddOns\\SteakFrames\\Audiowide-Regular.ttf", 8, "OUTLINE")
+		bar.text:SetPoint("LEFT")
+
+		bar.time = bar:CreateFontString(nil, "OVERLAY")
+		bar.time:SetFont("Interface\\AddOns\\SteakFrames\\Audiowide-Regular.ttf", 8, "OUTLINE")
+		bar.time:SetPoint("RIGHT")
+
+		bar.unit = unit
+
+		bar:SetScript("OnUpdate", function(self, elapsed)
+			if not self:IsShown() then return end
+
+			local now = GetTime()
+
+			if self.channeling then
+				local remaining = self.endTime - now
+
+				if remaining <= 0 then
+					self:Hide()
+				else
+					self:SetValue(remaining)
+					self.time:SetText(("%.1fs"):format(remaining))
+				end
+			else
+				local progress = now - self.startTime
+
+				if progress >= (self.endTime - self.startTime) then
+					self:Hide()
+				else
+					self:SetValue(progress)
+					self.time:SetText(("%.1f / %ds"):format(progress, self.duration))
+				end
+			end
+		end)
+
+		frame.castBar = bar
 	end
 
 	local health = CreateFrame("StatusBar", nil, frame)
@@ -1461,3 +1578,6 @@ h:SetScript("OnEvent", function()
 		end
 	end
 end)
+
+CastingBarFrame:UnregisterAllEvents()
+CastingBarFrame:Hide()
