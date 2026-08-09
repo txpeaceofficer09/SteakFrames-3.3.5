@@ -293,27 +293,6 @@ local SteakUnitEvents = {
 	"UNIT_SPELLCAST_CHANNEL_STOP",
 }
 
-local function CreateSteakCastBar(parent, unit)
-	local bar = CreateFrame("StatusBar", nil, parent)
-
-	bar:SetSize(parent:GetWidth(), 14)
-	bar:SetPoint("TOP", parent, "BOTTOM", 0, -2)
-	bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-	bar:SetMinMaxValues(0, 1)
-	bar:Hide()
-
-	bar.bg = bar:CreateTexture(nil, "BACKGROUND")
-	bar.bg:SetAllPoints()
-	bar.bg:SetTexture("Interface\\Buttons\\WHITE8x8")
-	bar.bg:SetVertexColor(0, 0, 0, 0.6)
-
-	bar.text = bar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	bar.text:SetPoint("CENTER")
-
-	bar.unit = unit
-	return bar
-end
-
 local function UnitInGroup(unit)
 	if not UnitExists(unit) then return false end
 
@@ -926,8 +905,8 @@ end
 
 local function Steak_OnEvent(self, event, ...)
 	if event == "UNIT_SPELLCAST_START" then
-		--local unit = ...
-		--if unit ~= "player" and unit ~= "target" then return end
+		local unit = ...
+		if unit ~= self.unit then return end
 		if not self.castBar then return end
 
 		local name, _, _, _, startTime, endTime = UnitCastingInfo(...)
@@ -942,8 +921,8 @@ local function Steak_OnEvent(self, event, ...)
 			self.castBar:Show()
 		end
 	elseif event == "UNIT_SPELLCAST_CHANNEL_START" then
-		--local unit = ...
-		--if unit ~= "player" and unit ~= "target" then return end
+		local unit = ...
+		if unit ~= self.unit then return end
 		if not self.castBar then return end
 
 		local name, _, _, _, startTime, endTime = UnitChannelInfo(...)
@@ -958,8 +937,8 @@ local function Steak_OnEvent(self, event, ...)
 			self.castBar:Show()
 		end
 	elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_CHANNEL_STOP" then
-		--local unit = ...
-		--if unit ~= "player" and unit ~= "target" then return end
+		local unit = ...
+		if unit ~= self.unit then return end
 		if not self.castBar then return end
 
 		self.castBar:Hide()
@@ -1184,7 +1163,7 @@ local function CreateSteakUnitFrame(name, unit, width, height, parent)
 		end
 	end
 
-	if unit == "player" or unit == "target" then
+	if unit == "player" or unit == "target" or unit:match("^party") or unit == "pet" then
 		local bar = CreateFrame("StatusBar", nil, frame)
 
 		bar:SetSize(frame:GetWidth(), 14)
@@ -1411,7 +1390,6 @@ RegisterStateDriver(raidParent, "visibility", "[group:raid] show; hide")
 
 for i=1,10 do
 	local raidFrame = CreateSteakUnitFrame("SteakRaid"..i, "raid"..i, 110, 40, raidParent)
-	--raidFrame:SetPoint("LEFT", raidParent, "LEFT", 114*(i-1), 0)
 	if i == 1 then
 		raidFrame:SetPoint("BOTTOMLEFT", raidParent, "BOTTOMLEFT", 0, 0)
 	elseif i == 6 then
@@ -1426,7 +1404,6 @@ for i=11,25 do
 
 	if i == 11 then
 		raidFrame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -1, 250)
-	--elseif i % 4 == 1 then
 	elseif i == 15 or i == 19 or i == 23 then
 		raidFrame:SetPoint("BOTTOM", _G["SteakRaid"..(i-4)], "TOP", 0, 6)
 	else
@@ -1546,12 +1523,12 @@ targetBuffs:SetScript("OnEvent", function(self, event, unit)
 end)
 ]]
 
-local h = CreateFrame("Frame")
+--local h = CreateFrame("Frame")
 
-h:RegisterEvent("PLAYER_LOGIN")
-h:RegisterEvent("PLAYER_REGEN_ENABLED")
+--h:RegisterEvent("PLAYER_LOGIN")
+--h:RegisterEvent("PLAYER_REGEN_ENABLED")
 
-h:SetScript("OnEvent", function()
+--h:SetScript("OnEvent", function()
 	local frames = {
 		PlayerFrame,
 		TargetFrame,
@@ -1575,9 +1552,12 @@ h:SetScript("OnEvent", function()
 			f:UnregisterAllEvents()
 			f:Hide()
 			f:SetParent(UIParent)
+			f:SetScript("OnShow", function(self) {
+				self:Hide()
+			})
 		end
 	end
-end)
+--end)
 
 CastingBarFrame:UnregisterAllEvents()
 CastingBarFrame:Hide()
