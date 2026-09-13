@@ -3,6 +3,7 @@ SteakUnitsParent:SetAllPoints(UIParent)
 
 local GearScores = {}
 local SteakAuras = {}
+local SteakSpecs = {}
 
 local SteakRoleSpecificSpells = {
         -- BLOOD
@@ -413,6 +414,7 @@ local function Steak_UpdateRole(self)
 
 	local role = UnitGroupRolesAssigned(self.unit)
 	local guid = UnitGUID(self.unit)
+	local spec = SteakSpecs[guid]
 
         if role == "NONE" or not role or role == "" then
                 if spec then
@@ -1048,9 +1050,9 @@ local function Steak_OnEvent(self, event, ...)
                 local _, subEvent, srcGUID, _, _, _, _, _, spellID, spellName = ...
 
 		if srcGUID == UnitGUID(self.unit) then
-	                if srcGUID and SteakRoleSpecificSpells[spellID] then
+	                if SteakRoleSpecificSpells[spellID] then
         	                SteakSpecs[srcGUID] = SteakRoleSpecificSpells[spellID]
-        	        elseif srcGUID and SteakRoleSpecificSpells[spellName] then
+        	        elseif SteakRoleSpecificSpells[spellName] then
         	                SteakSpecs[srcGUID] = SteakRoleSpecificSpells[spellName]
         	        end
 
@@ -1552,9 +1554,9 @@ end)
 			f:UnregisterAllEvents()
 			f:Hide()
 			f:SetParent(UIParent)
-			f:SetScript("OnShow", function(self) {
+			f:SetScript("OnShow", function(self)
 				self:Hide()
-			})
+			end)
 		end
 	end
 --end)
