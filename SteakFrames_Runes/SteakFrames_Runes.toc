@@ -1,0 +1,7 @@
+## Interface: 30300
+## Title: SteakFrames: Runes
+## Notes: SteakFrames add death knight runes to player unit frame.
+## Dependencies: SteakFrames
+## Verions: 2.0.0
+## Author: Soonbesteak
+Main.lua

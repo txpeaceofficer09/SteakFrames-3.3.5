@@ -29,10 +29,10 @@ local FLAG_AURAS = {
 }
 
 local ROLE_TEXCOORDS = {
-	leader = { 0.00, 0.25, 0, 1 },
-	dps = { 0.25, 0.50, 0, 1 },
-	tank = { 0.50, 0.75, 0, 1 },
-	healer = { 0.75, 1.00, 0, 1 }
+	LEADER = { 0.00, 0.25, 0, 1 },
+	DAMAGER = { 0.25, 0.50, 0, 1 },
+	TANK = { 0.50, 0.75, 0, 1 },
+	HEALER = { 0.75, 1.00, 0, 1 }
 }
 
 local function CreateIndicator(parent, texture, size, point, relativeTo, relativePoint, x, y)
@@ -237,6 +237,12 @@ function Module:UpdateFrame(frame)
 
 	if not role or role == "NONE" then
 		frame.roleIcon:Hide()
+	elseif role == "TANK" then
+		frame.roleIcon:SetTexCoord(0.50, 0.75, 0, 1)
+	elseif role == "HEALER" then
+		frame.roleIcon:SetTexCoord(0.75, 1, 0, 1)
+	elseif role == "DAMAGER" then
+		frame.roleIcon:SetTexCoord(0.25, 0.50, 0, 1)
 	else
 		frame.roleIcon:SetTexCoord(unpack(ROLE_TEXCOORDS[role]))
 	end
