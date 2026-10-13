@@ -1,0 +1,6 @@
+## Interface: 30300
+## Title: SteakFrames: Druid Mana
+## Notes: SteakFrames add druid mana bar to player unit frame.
+## Version: 2.0.0
+## Dependencies: SteakFrames
+Core.lua

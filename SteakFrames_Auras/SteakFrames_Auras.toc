@@ -1,0 +1,6 @@
+## Interface: 30300
+## Title: SteakFrames: Auras
+## Notes: SteakFrames add aura display for player and target.
+## Version: 2.0.1
+## Dependencies: SteakFrames
+Core.lua

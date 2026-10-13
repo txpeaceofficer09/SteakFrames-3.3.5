@@ -1,0 +1,6 @@
+## Interface: 30300
+## Title: SteakFrames: Threat
+## Notes: SteakFrames indicate threat on unit frames.
+## Version: 2.0.0
+## Dependencies: SteakFrames
+Core.lua

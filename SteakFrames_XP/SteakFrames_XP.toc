@@ -1,0 +1,6 @@
+## Interface: 30300
+## Title: SteakFrames: XP
+## Notes: SteakFrames add XP bar to player unit frame.
+## Version: 2.0.0
+## Dependencies: SteakFrames
+Core.lua

@@ -1,0 +1,6 @@
+## Interface: 30300
+## Title: SteakFrames: Combo Points
+## Notes: SteakFrames add combo point display to target unit frame.
+## Version: 2.0.0
+## Dependencies: SteakFrames
+Core.lua

@@ -1,0 +1,6 @@
+## Interface: 30300
+## Title: SteakFrames: GearScore
+## Notes: SteakFrames add gear score and item level to frames.
+## Version: 2.0.0
+## Dependencies: SteakFrames, GearScore
+Core.lua
